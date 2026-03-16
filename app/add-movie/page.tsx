@@ -91,7 +91,7 @@ export default function AddMoviePage() {
       });
 
       if (res.ok) {
-        router.push('/');
+        router.push('/admin');
       } else {
         alert('Failed to save movie');
       }
