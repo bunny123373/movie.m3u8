@@ -3,7 +3,7 @@
 import { useParams, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Movie, Series, Source } from '@/lib/types';
+import { Movie, Series } from '@/lib/types';
 import VideoPlayer from '@/components/VideoPlayer';
 
 type MediaItem = Movie & { mediaType: 'movie' };
@@ -20,21 +20,45 @@ export default function WatchPage() {
 
   useEffect(() => {
     async function fetchMovie() {
-      if (!slugOrId) return;
+      if (!slugOrId) {
+        setLoading(false);
+        return;
+      }
+
+      const encodedParam = encodeURIComponent(slugOrId);
+
+      const tryFetch = async (
+        url: string,
+        mediaType: 'movie' | 'series'
+      ): Promise<(MediaItem | MediaSeries) | null> => {
+        const res = await fetch(url);
+        if (!res.ok) {
+          return null;
+        }
+        const data = await res.json();
+        return { ...data, mediaType } as MediaItem | MediaSeries;
+      };
+
       try {
-        const res = await fetch(`/api/movies?slug=${slugOrId}`);
-        if (res.ok) {
-          const data = await res.json();
-          setMovie({ ...data, mediaType: 'movie' as const });
-        } else {
-          const seriesRes = await fetch(`/api/series?slug=${slugOrId}`);
-          if (seriesRes.ok) {
-            const seriesData = await seriesRes.json();
-            setMovie({ ...seriesData, mediaType: 'series' as const });
+        const candidates: Array<[string, 'movie' | 'series']> = [
+          [`/api/movies?slug=${encodedParam}`, 'movie'],
+          [`/api/movies?id=${encodedParam}`, 'movie'],
+          [`/api/series?slug=${encodedParam}`, 'series'],
+          [`/api/series?id=${encodedParam}`, 'series'],
+        ];
+
+        for (const [url, mediaType] of candidates) {
+          const media = await tryFetch(url, mediaType);
+          if (media) {
+            setMovie(media);
+            return;
           }
         }
+
+        setMovie(null);
       } catch (error) {
         console.error('Error fetching movie:', error);
+        setMovie(null);
       } finally {
         setLoading(false);
       }
@@ -121,7 +145,7 @@ export default function WatchPage() {
           {movie.sources.map((source) => (
             <Link
               key={source.id}
-              href={`/watch/${movie.id}?source=${source.id}`}
+              href={`/watch/${movie.slug || movie.id}?source=${source.id}`}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 source.id === currentSource.id
                   ? 'bg-white text-zinc-900'
