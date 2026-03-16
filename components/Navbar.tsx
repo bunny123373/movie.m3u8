@@ -17,14 +17,14 @@ export default function Navbar() {
             <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg overflow-hidden">
               <Image 
                 src="/favicon.png" 
-                alt="StreamGrid" 
+                alt="TeluguDub" 
                 width={36}
                 height={36}
                 className="w-full h-full object-cover"
               />
             </div>
-            <span className="text-lg sm:text-xl font-semibold tracking-[0.02em] bg-gradient-to-r from-zinc-100 via-zinc-300 to-zinc-100 bg-clip-text text-transparent">
-              StreamGrid
+            <span className="text-lg sm:text-xl font-bold tracking-[0.02em] text-white">
+              TeluguDub
             </span>
           </Link>
 

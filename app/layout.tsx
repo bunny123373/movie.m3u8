@@ -10,7 +10,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "StreamGrid - Movie Streaming",
+  title: "TeluguDub - Movie Streaming",
   description: "Stream movies and series online",
   manifest: "/manifest.json",
   icons: {
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "StreamGrid",
+    title: "TeluguDub",
   },
 };
 
