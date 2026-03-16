@@ -23,7 +23,9 @@ export default function Navbar() {
                 className="w-full h-full object-cover"
               />
             </div>
-            <span className="text-lg sm:text-xl font-semibold text-white">StreamGrid</span>
+            <span className="text-lg sm:text-xl font-semibold tracking-[0.02em] bg-gradient-to-r from-zinc-100 via-zinc-300 to-zinc-100 bg-clip-text text-transparent">
+              StreamGrid
+            </span>
           </Link>
 
           <div className="hidden md:flex items-center gap-4">
