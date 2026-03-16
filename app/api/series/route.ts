@@ -7,7 +7,13 @@ export async function GET(request: NextRequest) {
   const slug = searchParams.get('slug');
 
   if (slug) {
-    const series = await getSeriesBySlug(slug);
+    let series = await getSeriesBySlug(slug);
+    if (!series && slug.includes('-')) {
+      const idFromSlug = slug.split('-').pop();
+      if (idFromSlug) {
+        series = await getSeriesById(idFromSlug);
+      }
+    }
     if (!series) {
       return NextResponse.json({ error: 'Series not found' }, { status: 404 });
     }

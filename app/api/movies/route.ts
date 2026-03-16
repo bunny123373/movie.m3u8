@@ -7,7 +7,13 @@ export async function GET(request: NextRequest) {
   const slug = searchParams.get('slug');
 
   if (slug) {
-    const movie = await getMovieBySlug(slug);
+    let movie = await getMovieBySlug(slug);
+    if (!movie && slug.includes('-')) {
+      const idFromSlug = slug.split('-').pop();
+      if (idFromSlug) {
+        movie = await getMovieById(idFromSlug);
+      }
+    }
     if (!movie) {
       return NextResponse.json({ error: 'Movie not found' }, { status: 404 });
     }
