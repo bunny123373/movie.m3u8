@@ -67,42 +67,17 @@ export default function TmdbSearch({ onSelect, type = 'all' }: TmdbSearchProps) 
 
     setLoading(true);
     setError('');
-    
+
     try {
-      const apiKey = process.env.NEXT_PUBLIC_TMDB_API_KEY;
-      
-      if (!apiKey) {
-        setError('TMDB API key not configured');
-        setResults([]);
-        return;
-      }
-
-      let endpoint: string;
-      if (type === 'movie') {
-        endpoint = `https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&query=${encodeURIComponent(searchQuery)}`;
-      } else if (type === 'tv') {
-        endpoint = `https://api.themoviedb.org/3/search/tv?api_key=${apiKey}&query=${encodeURIComponent(searchQuery)}`;
-      } else {
-        endpoint = `https://api.themoviedb.org/3/search/multi?api_key=${apiKey}&query=${encodeURIComponent(searchQuery)}`;
-      }
-
-      const res = await fetch(endpoint);
+      const res = await fetch(`/api/tmdb?q=${encodeURIComponent(searchQuery)}&type=${type}`);
       
       if (!res.ok) {
-        throw new Error(`API error: ${res.status}`);
+        const data = await res.json();
+        throw new Error(data.error || `API error: ${res.status}`);
       }
       
       const data = await res.json();
-      
-      let filteredResults = data.results?.slice(0, 8) || [];
-      
-      if (type === 'movie') {
-        filteredResults = filteredResults.filter((r: TmdbResult) => r.media_type !== 'tv');
-      } else if (type === 'tv') {
-        filteredResults = filteredResults.filter((r: TmdbResult) => r.media_type !== 'movie');
-      }
-      
-      setResults(filteredResults);
+      setResults(data.results || []);
       setShowDropdown(true);
     } catch (err) {
       console.error('TMDB search error:', err);
@@ -146,7 +121,7 @@ export default function TmdbSearch({ onSelect, type = 'all' }: TmdbSearchProps) 
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder={type === 'tv' ? 'Search TV series from TMDB...' : type === 'movie' ? 'Search movie from TMDB...' : 'Search from TMDB...'}
+          placeholder={type === 'tv' ? 'Search TV series...' : type === 'movie' ? 'Search movies...' : 'Search from TMDB...'}
           className="w-full px-4 py-3 pl-10 text-sm bg-zinc-100 dark:bg-zinc-800 border-0 rounded-xl focus:outline-none focus:ring-2 focus:ring-zinc-300 dark:focus:ring-zinc-700 text-zinc-900 dark:text-zinc-100 placeholder-zinc-500"
         />
         <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">

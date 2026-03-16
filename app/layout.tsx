@@ -5,6 +5,9 @@ import Navbar from "@/components/Navbar";
 export const metadata: Metadata = {
   title: "StreamGrid - Movie Source Manager",
   description: "Manage your movie metadata and streaming sources with ease",
+  icons: {
+    icon: "/favicon.png",
+  },
 };
 
 export default function RootLayout({
