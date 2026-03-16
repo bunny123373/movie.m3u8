@@ -20,12 +20,6 @@ export default function Navbar() {
           </Link>
 
           <div className="hidden md:flex items-center gap-4">
-            <Link
-              href="/admin"
-              className="px-4 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white transition-colors"
-            >
-              Admin
-            </Link>
             <div className="relative">
               <input
                 type="text"
@@ -60,12 +54,6 @@ export default function Navbar() {
 
         {mobileMenuOpen && (
           <div className="md:hidden py-4 border-t border-zinc-200 dark:border-zinc-800 space-y-3">
-            <Link
-              href="/admin"
-              className="block px-4 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white"
-            >
-              Admin
-            </Link>
             <div className="mb-4">
               <input
                 type="text"
