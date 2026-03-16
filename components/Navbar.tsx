@@ -26,6 +26,21 @@ export default function Navbar() {
             <span className="text-lg sm:text-xl font-semibold text-white">StreamGrid</span>
           </Link>
 
+          <div className="hidden md:flex items-center gap-4">
+            <Link
+              href="/#movies"
+              className="text-sm font-medium text-zinc-400 hover:text-white transition-colors"
+            >
+              Movies
+            </Link>
+            <Link
+              href="/#series"
+              className="text-sm font-medium text-zinc-400 hover:text-white transition-colors"
+            >
+              Series
+            </Link>
+          </div>
+
           <div className="hidden md:flex items-center gap-3">
             <GlobalSearch />
             <FavoritesButton />
@@ -47,6 +62,22 @@ export default function Navbar() {
 
         {mobileMenuOpen && (
           <div className="md:hidden py-4 border-t border-zinc-800 space-y-4">
+            <div className="flex gap-2">
+              <Link
+                href="/#movies"
+                onClick={() => setMobileMenuOpen(false)}
+                className="px-3 py-1.5 text-sm bg-zinc-800 text-zinc-300 rounded-full"
+              >
+                Movies
+              </Link>
+              <Link
+                href="/#series"
+                onClick={() => setMobileMenuOpen(false)}
+                className="px-3 py-1.5 text-sm bg-zinc-800 text-zinc-300 rounded-full"
+              >
+                Series
+              </Link>
+            </div>
             <GlobalSearch />
             <FavoritesButton />
           </div>

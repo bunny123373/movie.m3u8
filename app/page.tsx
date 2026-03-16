@@ -94,6 +94,19 @@ export default function HomePage() {
     fetchMedia();
   }, []);
 
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash.toLowerCase();
+      if (hash === '#movies' || hash === '#series') {
+        setSelectedGenre('all');
+      }
+    };
+
+    handleHashChange();
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-zinc-950">
@@ -249,7 +262,7 @@ export default function HomePage() {
         )}
 
         {selectedGenre === 'all' && movies.length > 0 && (
-          <section className="mb-8 sm:mb-10">
+          <section id="movies" className="mb-8 sm:mb-10 scroll-mt-20">
             <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Movies</h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
               {movies.map((movie) => (
@@ -260,7 +273,7 @@ export default function HomePage() {
         )}
 
         {selectedGenre === 'all' && series.length > 0 && (
-          <section className="mb-8 sm:mb-10">
+          <section id="series" className="mb-8 sm:mb-10 scroll-mt-20">
             <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">TV Series</h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
               {series.map((s) => (
