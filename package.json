@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@vidstack/react": "^1.12.13",
+    "hls.js": "^1.6.15",
     "mongodb": "^7.1.0",
     "next": "16.1.6",
     "react": "19.2.3",

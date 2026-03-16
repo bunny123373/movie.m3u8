@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import Hls from 'hls.js';
 import { Source } from '@/lib/models';
 
 interface VideoPlayerProps {
@@ -8,8 +9,62 @@ interface VideoPlayerProps {
 }
 
 export default function VideoPlayer({ source }: VideoPlayerProps) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const hlsRef = useRef<Hls | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    if (source.type === 'm3u8') {
+      if (Hls.isSupported()) {
+        const hls = new Hls({
+          enableWorker: true,
+          lowLatencyMode: true,
+        });
+        hlsRef.current = hls;
+        
+        hls.loadSource(source.url);
+        hls.attachMedia(video);
+        
+        hls.on(Hls.Events.MANIFEST_PARSED, () => {
+          setLoading(false);
+          video.play().catch(() => {});
+        });
+        
+        hls.on(Hls.Events.ERROR, (event, data) => {
+          if (data.fatal) {
+            setError(true);
+            setLoading(false);
+          }
+        });
+      } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+        video.src = source.url;
+        video.addEventListener('loadedmetadata', () => {
+          setLoading(false);
+          video.play().catch(() => {});
+        });
+      } else {
+        setError(true);
+        setLoading(false);
+      }
+    } else if (source.type === 'mp4') {
+      video.src = source.url;
+      video.addEventListener('loadeddata', () => setLoading(false));
+      video.addEventListener('error', () => {
+        setError(true);
+        setLoading(false);
+      });
+    }
+
+    return () => {
+      if (hlsRef.current) {
+        hlsRef.current.destroy();
+      }
+    };
+  }, [source]);
 
   if (source.type === 'embed') {
     return (
@@ -22,16 +77,10 @@ export default function VideoPlayer({ source }: VideoPlayerProps) {
   return (
     <div className="w-full aspect-video rounded-xl overflow-hidden bg-black relative">
       <video
-        src={source.url}
+        ref={videoRef}
         controls
-        autoPlay
         className="w-full h-full"
-        onLoadedData={() => setLoading(false)}
-        onError={() => {
-          setError(true);
-          setLoading(false);
-        }}
-        onPlay={() => setLoading(false)}
+        playsInline
       />
       
       {loading && (

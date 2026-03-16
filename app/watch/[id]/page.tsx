@@ -1,9 +1,10 @@
 'use client';
 
-import { useParams, useSearchParams, useRouter } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Movie, Series } from '@/lib/models';
+import VideoPlayer from '@/components/VideoPlayer';
 
 interface MediaItem extends Movie {
   mediaType: 'movie';
@@ -16,7 +17,6 @@ interface MediaSeries extends Series {
 export default function WatchPage() {
   const params = useParams();
   const searchParams = useSearchParams();
-  const router = useRouter();
   const sourceId = searchParams.get('source');
   
   const [movie, setMovie] = useState<(MediaItem | MediaSeries) | null>(null);
@@ -88,7 +88,7 @@ export default function WatchPage() {
   return (
     <div className="min-h-screen bg-zinc-950">
       <div className="relative">
-        <div className="flex items-center gap-4 p-4 bg-zinc-900/50 backdrop-blur-sm">
+        <div className="flex items-center gap-4 p-4 bg-zinc-900/50 backdrop-blur-sm sticky top-0 z-10">
           <Link
             href={`/movie/${movie.id}`}
             className="flex items-center gap-2 px-3 py-2 text-sm text-zinc-300 hover:text-white transition-colors"
@@ -111,32 +111,8 @@ export default function WatchPage() {
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
             />
           </div>
-        ) : currentSource.type === 'm3u8' ? (
-          <div className="w-full h-[85vh] flex items-center justify-center bg-black">
-            <div className="text-center">
-              <p className="text-zinc-400 mb-4">HLS Stream</p>
-              <a 
-                href={currentSource.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-white text-zinc-900 rounded-lg font-medium hover:bg-zinc-200 transition-colors"
-              >
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M8 5v14l11-7z" />
-                </svg>
-                Open in Player
-              </a>
-            </div>
-          </div>
         ) : (
-          <div className="w-full h-[85vh]">
-            <video
-              src={currentSource.url}
-              controls
-              autoPlay
-              className="w-full h-full"
-            />
-          </div>
+          <VideoPlayer source={currentSource} />
         )}
       </div>
 
