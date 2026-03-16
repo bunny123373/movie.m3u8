@@ -1,6 +1,6 @@
 'use client';
 
-import { Source } from '@/lib/models';
+import { Source } from '@/lib/types';
 
 interface SourceInputProps {
   sources: Source[];

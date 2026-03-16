@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Hls from 'hls.js';
-import { Source } from '@/lib/models';
+import { Source } from '@/lib/types';
 
 interface VideoPlayerProps {
   source: Source;

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Source, createSlug } from '@/lib/models';
+import { Source, createSlug } from '@/lib/types';
 import TmdbSearch from '@/components/TmdbSearch';
 import MoviePreview from '@/components/MoviePreview';
 import SourceInput from '@/components/SourceInput';

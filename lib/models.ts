@@ -1,70 +1,7 @@
 import { getDatabase } from './db';
 import { ObjectId } from 'mongodb';
 
-export interface Source {
-  id: string;
-  name: string;
-  url: string;
-  type: 'mp4' | 'm3u8' | 'embed';
-  priority: number;
-  active: boolean;
-  season?: number;
-  episode?: number;
-}
-
-export function createSlug(title: string, id: string): string {
-  const slug = title
-    .toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, '')
-    .replace(/\s+/g, '-')
-    .replace(/-+/g, '-')
-    .trim();
-  return `${slug}-${id}`;
-}
-
-export interface Movie {
-  _id?: ObjectId;
-  id: string;
-  slug?: string;
-  title: string;
-  poster: string;
-  backdrop: string;
-  rating: number;
-  releaseDate: string;
-  overview: string;
-  genres: string[];
-  audioLanguages: string[];
-  subtitleLanguages: string[];
-  quality: string;
-  runtime: string;
-  fileSize: string;
-  sources: Source[];
-  mediaType: 'movie';
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface Series {
-  _id?: ObjectId;
-  id: string;
-  slug?: string;
-  title: string;
-  poster: string;
-  backdrop: string;
-  rating: number;
-  releaseDate: string;
-  overview: string;
-  genres: string[];
-  audioLanguages: string[];
-  subtitleLanguages: string[];
-  quality: string;
-  totalSeasons: number;
-  totalEpisodes: number;
-  sources: Source[];
-  mediaType: 'series';
-  createdAt: Date;
-  updatedAt: Date;
-}
+export * from './types';
 
 const movieSchema = {
   id: '',
@@ -81,48 +18,48 @@ const movieSchema = {
   quality: '1080p',
   runtime: '',
   fileSize: '',
-  sources: [] as Source[],
+  sources: [] as any[],
 };
 
-export async function getAllMovies(): Promise<Movie[]> {
+export async function getAllMovies(): Promise<any[]> {
   const db = await getDatabase();
-  const movies = await db.collection<Movie>('movies').find({}).sort({ createdAt: -1 }).toArray();
+  const movies = await db.collection('movies').find({}).sort({ createdAt: -1 }).toArray();
   return movies;
 }
 
-export async function getMovieById(id: string): Promise<Movie | null> {
+export async function getMovieById(id: string): Promise<any | null> {
   const db = await getDatabase();
-  const movie = await db.collection<Movie>('movies').findOne({ id });
+  const movie = await db.collection('movies').findOne({ id });
   return movie;
 }
 
-export async function getMovieBySlug(slug: string): Promise<Movie | null> {
+export async function getMovieBySlug(slug: string): Promise<any | null> {
   const db = await getDatabase();
-  const movie = await db.collection<Movie>('movies').findOne({ slug });
+  const movie = await db.collection('movies').findOne({ slug });
   return movie;
 }
 
-export async function getFeaturedMovie(): Promise<Movie | null> {
+export async function getFeaturedMovie(): Promise<any | null> {
   const db = await getDatabase();
-  const movie = await db.collection<Movie>('movies').findOne({}, { sort: { createdAt: -1 } });
+  const movie = await db.collection('movies').findOne({}, { sort: { createdAt: -1 } });
   return movie;
 }
 
-export async function createMovie(movie: Omit<Movie, '_id' | 'createdAt' | 'updatedAt'>): Promise<Movie> {
+export async function createMovie(movie: any): Promise<any> {
   const db = await getDatabase();
   const now = new Date();
-  const newMovie: Movie = {
+  const newMovie = {
     ...movie,
     createdAt: now,
     updatedAt: now,
   };
-  const result = await db.collection<Movie>('movies').insertOne(newMovie);
+  const result = await db.collection('movies').insertOne(newMovie);
   return { ...newMovie, _id: result.insertedId };
 }
 
-export async function updateMovie(id: string, updates: Partial<Movie>): Promise<Movie | null> {
+export async function updateMovie(id: string, updates: any): Promise<any | null> {
   const db = await getDatabase();
-  const result = await db.collection<Movie>('movies').findOneAndUpdate(
+  const result = await db.collection('movies').findOneAndUpdate(
     { id },
     { $set: { ...updates, updatedAt: new Date() } },
     { returnDocument: 'after' }
@@ -132,7 +69,7 @@ export async function updateMovie(id: string, updates: Partial<Movie>): Promise<
 
 export async function deleteMovie(id: string): Promise<boolean> {
   const db = await getDatabase();
-  const result = await db.collection<Movie>('movies').deleteOne({ id });
+  const result = await db.collection('movies').deleteOne({ id });
   return result.deletedCount > 0;
 }
 
@@ -141,9 +78,10 @@ export async function seedMovies(): Promise<void> {
   const count = await db.collection('movies').countDocuments();
   
   if (count === 0) {
-    const sampleMovies: Omit<Movie, '_id' | 'createdAt' | 'updatedAt'>[] = [
+    const sampleMovies = [
       {
         id: '1',
+        slug: 'pushpa-2-the-rule-1',
         title: 'Pushpa 2: The Rule',
         poster: 'https://image.tmdb.org/t/p/w500/l2ezR1lEsJ3JGR8CnYpK3K2mvi.jpg',
         backdrop: 'https://image.tmdb.org/t/p/original//4响wXq9OPqX8KwrL3QnV1tzLPOsY.jpg',
@@ -164,6 +102,7 @@ export async function seedMovies(): Promise<void> {
       },
       {
         id: '2',
+        slug: 'devara-part-1-2',
         title: 'Devara: Part 1',
         poster: 'https://image.tmdb.org/t/p/w500/lf1TeC8qUf2B4qD2evM9c9XhG.jpg',
         backdrop: 'https://image.tmdb.org/t/p/original//2Z3kfbK8x7G1f6tFZdC0sXaQ.jpg',
@@ -185,6 +124,7 @@ export async function seedMovies(): Promise<void> {
       },
       {
         id: '3',
+        slug: 'kalki-2898-ad-3',
         title: 'Kalki 2898 AD',
         poster: 'https://image.tmdb.org/t/p/w500/lrO0PHXYazyUVWPECzJ3Jfwz6w.jpg',
         backdrop: 'https://image.tmdb.org/t/p/original//4M0RPllEQs6f4K4e55gY2QqTxY.jpg',
@@ -204,6 +144,7 @@ export async function seedMovies(): Promise<void> {
       },
       {
         id: '4',
+        slug: 'rrr-4',
         title: 'RRR',
         poster: 'https://image.tmdb.org/t/p/w500/wfocG94d75V4x5XzL7E3L4nM3D.jpg',
         backdrop: 'https://image.tmdb.org/t/p/original//dX0KV3EZ9qTyQFfMimoF4keF2R.jpg',
@@ -224,6 +165,7 @@ export async function seedMovies(): Promise<void> {
       },
       {
         id: '5',
+        slug: 'jawan-5',
         title: 'Jawan',
         poster: 'https://image.tmdb.org/t/p/w500/lmZFxXgJE3vgrciwuDib0N8CfQo.jpg',
         backdrop: 'https://image.tmdb.org/t/p/original//dZ9XbLfeKPr3rM0ZKPSNTSfJRW.jpg',
@@ -244,6 +186,7 @@ export async function seedMovies(): Promise<void> {
       },
       {
         id: '6',
+        slug: 'dunki-6',
         title: 'Dunki',
         poster: 'https://image.tmdb.org/t/p/w500/jE5o7y9K6pZtWNNMEzf3xC9nZ4W.jpg',
         backdrop: 'https://image.tmdb.org/t/p/original//em4rQGmGLT2J5h0fPrMNTgKHwI.jpg',
@@ -263,44 +206,44 @@ export async function seedMovies(): Promise<void> {
       },
     ];
 
-    await db.collection('movies').insertMany(sampleMovies as Movie[]);
+    await db.collection('movies').insertMany(sampleMovies);
     console.log('Sample movies seeded');
   }
 }
 
-export async function getAllSeries(): Promise<Series[]> {
+export async function getAllSeries(): Promise<any[]> {
   const db = await getDatabase();
-  const series = await db.collection<Series>('series').find({}).sort({ createdAt: -1 }).toArray();
+  const series = await db.collection('series').find({}).sort({ createdAt: -1 }).toArray();
   return series;
 }
 
-export async function getSeriesById(id: string): Promise<Series | null> {
+export async function getSeriesById(id: string): Promise<any | null> {
   const db = await getDatabase();
-  const series = await db.collection<Series>('series').findOne({ id });
+  const series = await db.collection('series').findOne({ id });
   return series;
 }
 
-export async function getSeriesBySlug(slug: string): Promise<Series | null> {
+export async function getSeriesBySlug(slug: string): Promise<any | null> {
   const db = await getDatabase();
-  const series = await db.collection<Series>('series').findOne({ slug });
+  const series = await db.collection('series').findOne({ slug });
   return series;
 }
 
-export async function createSeries(series: Omit<Series, '_id' | 'createdAt' | 'updatedAt'>): Promise<Series> {
+export async function createSeries(series: any): Promise<any> {
   const db = await getDatabase();
   const now = new Date();
-  const newSeries: Series = {
+  const newSeries = {
     ...series,
     createdAt: now,
     updatedAt: now,
   };
-  const result = await db.collection<Series>('series').insertOne(newSeries);
+  const result = await db.collection('series').insertOne(newSeries);
   return { ...newSeries, _id: result.insertedId };
 }
 
-export async function updateSeries(id: string, updates: Partial<Series>): Promise<Series | null> {
+export async function updateSeries(id: string, updates: any): Promise<any | null> {
   const db = await getDatabase();
-  const result = await db.collection<Series>('series').findOneAndUpdate(
+  const result = await db.collection('series').findOneAndUpdate(
     { id },
     { $set: { ...updates, updatedAt: new Date() } },
     { returnDocument: 'after' }
@@ -310,15 +253,15 @@ export async function updateSeries(id: string, updates: Partial<Series>): Promis
 
 export async function deleteSeries(id: string): Promise<boolean> {
   const db = await getDatabase();
-  const result = await db.collection<Series>('series').deleteOne({ id });
+  const result = await db.collection('series').deleteOne({ id });
   return result.deletedCount > 0;
 }
 
-export async function getAllMedia(): Promise<(Movie | Series)[]> {
+export async function getAllMedia(): Promise<any[]> {
   const db = await getDatabase();
   const [movies, series] = await Promise.all([
-    db.collection<Movie>('movies').find({}).toArray(),
-    db.collection<Series>('series').find({}).toArray(),
+    db.collection('movies').find({}).toArray(),
+    db.collection('series').find({}).toArray(),
   ]);
   return [...movies, ...series].sort((a, b) => 
     new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()

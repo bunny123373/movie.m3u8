@@ -3,16 +3,11 @@
 import { useParams, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Movie, Series } from '@/lib/models';
+import { Movie, Series, Source } from '@/lib/types';
 import VideoPlayer from '@/components/VideoPlayer';
 
-interface MediaItem extends Movie {
-  mediaType: 'movie';
-}
-
-interface MediaSeries extends Series {
-  mediaType: 'series';
-}
+type MediaItem = Movie & { mediaType: 'movie' };
+type MediaSeries = Series & { mediaType: 'series' };
 
 export default function WatchPage() {
   const params = useParams();

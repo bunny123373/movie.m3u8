@@ -4,15 +4,10 @@ import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Movie, Series } from '@/lib/models';
+import { Movie, Series, Source } from '@/lib/types';
 
-interface MediaItem extends Movie {
-  mediaType: 'movie';
-}
-
-interface MediaSeries extends Series {
-  mediaType: 'series';
-}
+type MediaItem = Movie & { mediaType: 'movie' };
+type MediaSeries = Series & { mediaType: 'series' };
 
 export default function MovieDetailClient() {
   const params = useParams();
@@ -196,7 +191,7 @@ export default function MovieDetailClient() {
 
         <h2 className="text-2xl font-bold mb-6">Watch Options</h2>
         <div className="grid gap-3">
-          {movie.sources.map((source: any) => (
+          {movie.sources.map((source: Source) => (
             <div 
               key={source.id} 
               className="flex items-center justify-between p-4 bg-zinc-900 rounded-lg hover:bg-zinc-800 transition-colors"
@@ -211,7 +206,7 @@ export default function MovieDetailClient() {
                 <span className="font-medium">{source.name}</span>
               </div>
               <Link
-                href={`/watch/${movie.id}?source=${source.id}`}
+                href={`/watch/${movie.slug || movie.id}?source=${source.id}`}
                 className="flex items-center gap-2 px-4 py-2 bg-white text-zinc-900 rounded font-medium hover:bg-zinc-200 transition-colors"
               >
                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
