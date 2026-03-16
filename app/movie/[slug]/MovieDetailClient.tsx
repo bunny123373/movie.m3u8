@@ -15,6 +15,9 @@ export default function MovieDetailClient() {
   const [movie, setMovie] = useState<(MediaItem | MediaSeries) | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [selectedSeason, setSelectedSeason] = useState(1);
+  const [showTrailer, setShowTrailer] = useState(false);
 
   useEffect(() => {
     async function fetchMovie() {
@@ -48,6 +51,38 @@ export default function MovieDetailClient() {
       fetchMovie();
     }
   }, [slug]);
+
+  useEffect(() => {
+    if (movie) {
+      const stored = localStorage.getItem('favorites');
+      if (stored) {
+        const favs = JSON.parse(stored);
+        setIsFavorite(favs.some((f: any) => f.id === movie.id));
+      }
+    }
+  }, [movie]);
+
+  const toggleFavorite = () => {
+    if (!movie) return;
+    const stored = localStorage.getItem('favorites');
+    const favs = stored ? JSON.parse(stored) : [];
+    
+    if (isFavorite) {
+      const updated = favs.filter((f: any) => f.id !== movie.id);
+      localStorage.setItem('favorites', JSON.stringify(updated));
+      setIsFavorite(false);
+    } else {
+      const updated = [...favs, {
+        id: movie.id,
+        slug: movie.slug,
+        title: movie.title,
+        poster: movie.poster,
+        mediaType: movie.mediaType
+      }];
+      localStorage.setItem('favorites', JSON.stringify(updated));
+      setIsFavorite(true);
+    }
+  };
 
   if (loading) {
     return (
@@ -132,6 +167,20 @@ export default function MovieDetailClient() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 Info
+              </button>
+              <button
+                onClick={toggleFavorite}
+                className="flex items-center justify-center gap-2 px-4 py-2.5 sm:py-3 bg-zinc-500/50 rounded-lg hover:bg-zinc-500/70 transition-colors text-sm"
+              >
+                <svg 
+                  className={`w-4 h-4 ${isFavorite ? 'text-red-500' : ''}`} 
+                  fill={isFavorite ? 'currentColor' : 'none'} 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                </svg>
+                {isFavorite ? 'Saved' : 'Save'}
               </button>
             </div>
 
@@ -227,6 +276,53 @@ export default function MovieDetailClient() {
             </div>
           ))}
         </div>
+
+        {isSeries && (movie as any).totalSeasons > 1 && (
+          <div className="mt-8">
+            <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
+              {Array.from({ length: (movie as any).totalSeasons }, (_, i) => i + 1).map(season => (
+                <button
+                  key={season}
+                  onClick={() => setSelectedSeason(season)}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
+                    selectedSeason === season ? 'bg-red-600 text-white' : 'bg-zinc-800 text-zinc-400 hover:text-white'
+                  }`}
+                >
+                  Season {season}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {isSeries && (
+          <div className="mt-8">
+            <h3 className="text-lg font-semibold mb-4">
+              Episodes {isSeries && (movie as any).totalSeasons > 1 && `- Season ${selectedSeason}`}
+            </h3>
+            <div className="grid gap-2 sm:gap-3 max-h-96 overflow-y-auto">
+              {Array.from({ length: (movie as any).totalEpisodes || 10 }, (_, i) => i + 1).map(episode => (
+                <div 
+                  key={episode}
+                  className="flex items-center justify-between p-3 sm:p-4 bg-zinc-900 rounded-lg hover:bg-zinc-800 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-zinc-500 text-sm w-8">{episode}</span>
+                    <span className="text-sm">Episode {episode}</span>
+                  </div>
+                  {movie.sources[0] && (
+                    <Link
+                      href={`/watch/${movie.slug || movie.id}?source=${movie.sources[0].id}&episode=${episode}`}
+                      className="px-3 py-1.5 bg-red-600 hover:bg-red-700 rounded text-sm transition-colors"
+                    >
+                      Play
+                    </Link>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="mt-12 grid md:grid-cols-2 gap-8">
           <div>

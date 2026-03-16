@@ -50,6 +50,8 @@ export default function HomePage() {
   const [movies, setMovies] = useState<MediaItem[]>([]);
   const [series, setSeries] = useState<MediaItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedGenre, setSelectedGenre] = useState<string>('all');
+  const [continueWatching, setContinueWatching] = useState<MediaItem[]>([]);
 
   useEffect(() => {
     async function fetchMedia() {
@@ -71,6 +73,17 @@ export default function HomePage() {
           setFeatured(allMedia[0]);
           setMovies(moviesData);
           setSeries(seriesData);
+        }
+        
+        const storedProgress = localStorage.getItem('watchProgress');
+        if (storedProgress) {
+          const progress: any = JSON.parse(storedProgress);
+          const continueItems = Object.keys(progress)
+            .filter(id => progress[id].progress > 0 && progress[id].progress < progress[id].duration * 0.95)
+            .slice(0, 6)
+            .map(id => allMedia.find(m => m.id === id))
+            .filter(Boolean) as MediaItem[];
+          setContinueWatching(continueItems);
         }
       } catch (err) {
         console.warn('Failed to fetch media:', err);
@@ -181,11 +194,64 @@ export default function HomePage() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 -mt-20 relative z-20">
-        {movies.length > 0 && (
-          <section className="mb-12">
-            <h2 className="text-2xl font-bold mb-6">Movies</h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-6 sm:py-8 -mt-20 relative z-20">
+        {continueWatching.length > 0 && (
+          <section className="mb-8 sm:mb-10">
+            <div className="flex items-center gap-2 mb-4 sm:mb-6">
+              <svg className="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7z"/>
+              </svg>
+              <h2 className="text-lg sm:text-2xl font-bold">Continue Watching</h2>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
+              {continueWatching.map((item) => (
+                <MovieCard key={item.id} movie={item as any} />
+              ))}
+            </div>
+          </section>
+        )}
+
+        <div className="mb-6 overflow-x-auto pb-2">
+          <div className="flex gap-2">
+            <button
+              onClick={() => setSelectedGenre('all')}
+              className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium whitespace-nowrap transition-colors ${
+                selectedGenre === 'all' ? 'bg-red-600 text-white' : 'bg-zinc-800 text-zinc-400 hover:text-white'
+              }`}
+            >
+              All
+            </button>
+            {['Action', 'Drama', 'Comedy', 'Thriller', 'Sci-Fi', 'Romance', 'Horror', 'Adventure'].map((genre) => (
+              <button
+                key={genre}
+                onClick={() => setSelectedGenre(genre)}
+                className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium whitespace-nowrap transition-colors ${
+                  selectedGenre === genre ? 'bg-red-600 text-white' : 'bg-zinc-800 text-zinc-400 hover:text-white'
+                }`}
+              >
+                {genre}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {selectedGenre !== 'all' && (
+          <section className="mb-8 sm:mb-10">
+            <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">{selectedGenre}</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
+              {[...movies, ...series]
+                .filter(m => m.genres?.some((g: string) => g.toLowerCase() === selectedGenre.toLowerCase()))
+                .map((item) => (
+                  <MovieCard key={item.id} movie={item as any} />
+                ))}
+            </div>
+          </section>
+        )}
+
+        {selectedGenre === 'all' && movies.length > 0 && (
+          <section className="mb-8 sm:mb-10">
+            <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Movies</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
               {movies.map((movie) => (
                 <MovieCard key={movie.id} movie={movie as any} />
               ))}
@@ -193,10 +259,10 @@ export default function HomePage() {
           </section>
         )}
 
-        {series.length > 0 && (
-          <section className="mb-12">
-            <h2 className="text-2xl font-bold mb-6">TV Series</h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+        {selectedGenre === 'all' && series.length > 0 && (
+          <section className="mb-8 sm:mb-10">
+            <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">TV Series</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
               {series.map((s) => (
                 <MovieCard key={s.id} movie={s as any} />
               ))}
