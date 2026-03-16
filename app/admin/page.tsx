@@ -163,10 +163,10 @@ export default function AdminDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-zinc-950 p-8">
+      <div className="min-h-screen bg-gradient-to-b from-[#0d1117] via-[#161b22] to-[#0d1117] p-8">
         <div className="max-w-6xl mx-auto space-y-4">
           {[...Array(5)].map((_, i) => (
-            <div key={i} className="h-24 bg-zinc-800 rounded-xl" />
+            <div key={i} className="h-24 bg-[#161b22] border border-[#30363d] rounded-xl" />
           ))}
         </div>
       </div>
@@ -174,9 +174,9 @@ export default function AdminDashboard() {
   }
 
   return (
-    <main className="min-h-screen bg-zinc-950 text-white">
+    <main className="min-h-screen bg-gradient-to-b from-[#0d1117] via-[#161b22] to-[#0d1117] text-white">
       {showSuccess && (
-        <div className="fixed top-4 right-4 z-50 px-6 py-3 bg-green-600 text-white rounded-lg shadow-lg animate-pulse">
+        <div className="fixed top-4 right-4 z-50 px-6 py-3 bg-[#00a8e1] text-white rounded-lg shadow-lg animate-pulse">
           Added successfully!
         </div>
       )}
@@ -184,19 +184,19 @@ export default function AdminDashboard() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold">Admin Panel</h1>
-            <p className="text-zinc-400 mt-1">Manage your content</p>
+            <h1 className="text-3xl font-bold">Content Manager</h1>
+            <p className="text-[#8b949e] mt-1">Manage your library</p>
           </div>
           <div className="flex gap-3">
             <Link
               href="/add-movie"
-              className="px-5 py-2.5 text-sm font-medium bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
+              className="px-5 py-2.5 text-sm font-medium bg-[#00a8e1] hover:bg-[#00b4e6] rounded-lg transition-all shadow-lg shadow-[#00a8e1]/20"
             >
               + Add Movie
             </Link>
             <Link
               href="/add-series"
-              className="px-5 py-2.5 text-sm font-medium bg-zinc-800 hover:bg-zinc-700 rounded-lg transition-colors"
+              className="px-5 py-2.5 text-sm font-medium bg-[#21262d] hover:bg-[#30363d] border border-[#30363d] rounded-lg transition-all"
             >
               + Add Series
             </Link>
@@ -204,37 +204,46 @@ export default function AdminDashboard() {
         </div>
 
         <div className="grid grid-cols-3 gap-4 mb-8">
-          <div className="bg-zinc-900 p-5 rounded-xl">
-            <p className="text-zinc-400 text-sm">Total Movies</p>
-            <p className="text-3xl font-bold mt-1">{stats.totalMovies}</p>
+          <div className="bg-[#161b22] border border-[#30363d] p-5 rounded-xl">
+            <div className="flex items-center gap-2">
+              <svg className="w-5 h-5 text-[#00a8e1]" fill="currentColor" viewBox="0 0 24 24"><path d="M18.4 10.6C16.55 8.99 14.15 8 11.99 8c-4.65 0-8.58 3.03-9.96 7.22L3.9 16c1.05-3.19 4.05-5.5 7.6-5.5 1.95 0 3.73.72 5.12 1.88L13 16h9V7l-3.6 3.6z"/></svg>
+              <p className="text-[#8b949e] text-sm">Total Movies</p>
+            </div>
+            <p className="text-3xl font-bold mt-2">{stats.totalMovies}</p>
           </div>
-          <div className="bg-zinc-900 p-5 rounded-xl">
-            <p className="text-zinc-400 text-sm">Total Series</p>
-            <p className="text-3xl font-bold mt-1">{stats.totalSeries}</p>
+          <div className="bg-[#161b22] border border-[#30363d] p-5 rounded-xl">
+            <div className="flex items-center gap-2">
+              <svg className="w-5 h-5 text-[#a371f7]" fill="currentColor" viewBox="0 0 24 24"><path d="M21 3H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H3V5h18v14zM9 8h2v8H9zm4 0h2v8h-2z"/></svg>
+              <p className="text-[#8b949e] text-sm">Total Series</p>
+            </div>
+            <p className="text-3xl font-bold mt-2">{stats.totalSeries}</p>
           </div>
-          <div className="bg-zinc-900 p-5 rounded-xl">
-            <p className="text-zinc-400 text-sm">Avg Rating</p>
-            <p className="text-3xl font-bold mt-1 text-yellow-400">★ {stats.avgRating}</p>
+          <div className="bg-[#161b22] border border-[#30363d] p-5 rounded-xl">
+            <div className="flex items-center gap-2">
+              <svg className="w-5 h-5 text-[#f0b429]" fill="currentColor" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+              <p className="text-[#8b949e] text-sm">Avg Rating</p>
+            </div>
+            <p className="text-3xl font-bold mt-2 text-[#f0b429]">★ {stats.avgRating}</p>
           </div>
         </div>
 
         <div className="flex gap-2 mb-6">
           <button
             onClick={() => { setActiveTab('movies'); setSelectedItems([]); }}
-            className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+            className={`px-4 py-2 text-sm font-medium rounded-lg transition-all ${
               activeTab === 'movies'
-                ? 'bg-red-600 text-white'
-                : 'bg-zinc-800 text-zinc-400 hover:text-white'
+                ? 'bg-[#00a8e1] text-white shadow-lg shadow-[#00a8e1]/20'
+                : 'bg-[#21262d] text-[#8b949e] hover:text-white hover:bg-[#30363d]'
             }`}
           >
             Movies ({movies.length})
           </button>
           <button
             onClick={() => { setActiveTab('series'); setSelectedItems([]); }}
-            className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+            className={`px-4 py-2 text-sm font-medium rounded-lg transition-all ${
               activeTab === 'series'
-                ? 'bg-red-600 text-white'
-                : 'bg-zinc-800 text-zinc-400 hover:text-white'
+                ? 'bg-[#00a8e1] text-white shadow-lg shadow-[#00a8e1]/20'
+                : 'bg-[#21262d] text-[#8b949e] hover:text-white hover:bg-[#30363d]'
             }`}
           >
             Series ({series.length})
@@ -244,16 +253,16 @@ export default function AdminDashboard() {
         <div className="flex gap-4 mb-6">
           <input
             type="text"
-            placeholder="Search..."
+            placeholder="Search titles..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="flex-1 px-4 py-2.5 bg-zinc-900 border border-zinc-800 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:border-red-600"
+            className="flex-1 px-4 py-2.5 bg-[#0d1117] border border-[#30363d] rounded-lg text-white placeholder-[#8b949e] focus:outline-none focus:border-[#00a8e1] focus:ring-1 focus:ring-[#00a8e1]"
           />
         </div>
 
         {selectedItems.length > 0 && (
-          <div className="flex items-center gap-4 mb-4 p-3 bg-zinc-900 rounded-lg">
-            <span className="text-zinc-400">{selectedItems.length} selected</span>
+          <div className="flex items-center gap-4 mb-4 p-3 bg-[#161b22] border border-[#30363d] rounded-lg">
+            <span className="text-[#8b949e]">{selectedItems.length} selected</span>
             <button
               onClick={bulkDelete}
               className="px-3 py-1.5 text-sm bg-red-600 hover:bg-red-700 rounded transition-colors"
@@ -262,35 +271,35 @@ export default function AdminDashboard() {
             </button>
             <button
               onClick={() => setSelectedItems([])}
-              className="px-3 py-1.5 text-sm text-zinc-400 hover:text-white"
+              className="px-3 py-1.5 text-sm text-[#8b949e] hover:text-white"
             >
               Clear
             </button>
           </div>
         )}
 
-        <div className="bg-zinc-900 rounded-xl overflow-hidden">
+        <div className="bg-[#161b22] border border-[#30363d] rounded-xl overflow-hidden">
           <table className="w-full">
-            <thead className="bg-zinc-800/50">
+            <thead className="bg-[#21262d]">
               <tr>
                 <th className="px-4 py-3 text-left">
                   <input
                     type="checkbox"
                     checked={selectedItems.length === currentList.length && currentList.length > 0}
                     onChange={toggleSelectAll}
-                    className="w-4 h-4 rounded"
+                    className="w-4 h-4 rounded accent-[#00a8e1]"
                   />
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-zinc-400 uppercase">Content</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-zinc-400 uppercase">Type</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-zinc-400 uppercase">Quality</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-zinc-400 uppercase">Sources</th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-zinc-400 uppercase">Actions</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-[#8b949e] uppercase">Content</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-[#8b949e] uppercase">Type</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-[#8b949e] uppercase">Quality</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-[#8b949e] uppercase">Sources</th>
+                <th className="px-4 py-3 text-right text-xs font-medium text-[#8b949e] uppercase">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-800">
+            <tbody className="divide-y divide-[#30363d]">
               {currentList.map((item) => (
-                <tr key={item.id} className="hover:bg-zinc-800/30">
+                <tr key={item.id} className="hover:bg-[#21262d]/50 transition-colors">
                   <td className="px-4 py-3">
                     <input
                       type="checkbox"
@@ -302,52 +311,52 @@ export default function AdminDashboard() {
                           setSelectedItems([...selectedItems, item.id]);
                         }
                       }}
-                      className="w-4 h-4 rounded"
+                      className="w-4 h-4 rounded accent-[#00a8e1]"
                     />
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
-                      <div className="w-12 h-16 rounded overflow-hidden bg-zinc-800 shrink-0">
+                      <div className="w-12 h-16 rounded overflow-hidden bg-[#21262d] shrink-0">
                         {item.poster && (
                           <Image src={item.poster} alt={item.title} width={48} height={64} className="w-full h-full object-cover" />
                         )}
                       </div>
                       <div>
                         <p className="font-medium">{item.title}</p>
-                        <p className="text-sm text-zinc-500">{item.releaseDate.split('-')[0]} • ★ {item.rating}</p>
+                        <p className="text-sm text-[#8b949e]">{item.releaseDate.split('-')[0]} • ★ {item.rating}</p>
                       </div>
                     </div>
                   </td>
                   <td className="px-4 py-3">
                     <span className={`px-2 py-1 text-xs rounded ${
                       item.mediaType === 'movie' 
-                        ? 'bg-blue-900/50 text-blue-400' 
-                        : 'bg-purple-900/50 text-purple-400'
+                        ? 'bg-[#1f3b5c] text-[#58a6ff]' 
+                        : 'bg-[#3d2e5c] text-[#a371f7]'
                     }`}>
                       {item.mediaType === 'movie' ? 'Movie' : 'Series'}
                     </span>
                   </td>
                   <td className="px-4 py-3">
-                    <span className="px-2 py-1 text-xs bg-zinc-700 rounded">{item.quality}</span>
+                    <span className="px-2 py-1 text-xs bg-[#21262d] text-[#8b949e] rounded">{item.quality}</span>
                   </td>
-                  <td className="px-4 py-3 text-zinc-400">{item.sources.length}</td>
+                  <td className="px-4 py-3 text-[#8b949e]">{item.sources.length}</td>
                   <td className="px-4 py-3 text-right">
                     <div className="flex items-center justify-end gap-2">
                       <button
                         onClick={() => setEditingItem(item)}
-                        className="px-3 py-1.5 text-xs bg-zinc-700 hover:bg-zinc-600 rounded transition-colors"
+                        className="px-3 py-1.5 text-xs bg-[#21262d] hover:bg-[#30363d] border border-[#30363d] rounded transition-colors"
                       >
                         Edit
                       </button>
                       <Link
                         href={`/movie/${item.slug || item.id}`}
-                        className="px-3 py-1.5 text-xs bg-zinc-700 hover:bg-zinc-600 rounded transition-colors"
+                        className="px-3 py-1.5 text-xs bg-[#21262d] hover:bg-[#30363d] border border-[#30363d] rounded transition-colors"
                       >
                         View
                       </Link>
                       <button
                         onClick={() => deleteItem(item.id, item.mediaType)}
-                        className="px-3 py-1.5 text-xs bg-red-900/50 text-red-400 hover:bg-red-900 rounded transition-colors"
+                        className="px-3 py-1.5 text-xs bg-[#3d2a2a] text-[#f85149] hover:bg-[#5d3a3a] rounded transition-colors"
                       >
                         Delete
                       </button>
@@ -359,7 +368,7 @@ export default function AdminDashboard() {
           </table>
 
           {currentList.length === 0 && (
-            <div className="p-12 text-center text-zinc-500">
+            <div className="p-12 text-center text-[#8b949e]">
               No {activeTab} found
             </div>
           )}
@@ -367,15 +376,15 @@ export default function AdminDashboard() {
       </div>
 
       {editingItem && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70">
-          <div className="bg-zinc-900 rounded-2xl w-full max-w-lg">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <div className="bg-[#161b22] border border-[#30363d] rounded-2xl w-full max-w-lg shadow-2xl">
             <form onSubmit={saveItem}>
-              <div className="p-6 border-b border-zinc-800">
+              <div className="p-6 border-b border-[#30363d]">
                 <h2 className="text-xl font-bold">Edit {editingItem.mediaType === 'movie' ? 'Movie' : 'Series'}</h2>
               </div>
               <div className="p-6 space-y-4">
                 <div>
-                  <label className="block text-sm text-zinc-400 mb-1">Title</label>
+                  <label className="block text-sm text-[#8b949e] mb-1">Title</label>
                   <input
                     type="text"
                     value={editingItem.title}
@@ -384,25 +393,25 @@ export default function AdminDashboard() {
                       title: e.target.value,
                       slug: createSlug(e.target.value, editingItem.id)
                     })}
-                    className="w-full px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white"
+                    className="w-full px-4 py-2 bg-[#0d1117] border border-[#30363d] rounded-lg text-white focus:outline-none focus:border-[#00a8e1]"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm text-zinc-400 mb-1">Slug</label>
+                  <label className="block text-sm text-[#8b949e] mb-1">Slug</label>
                   <input
                     type="text"
                     value={editingItem.slug || ''}
                     onChange={(e) => setEditingItem({ ...editingItem, slug: e.target.value })}
-                    className="w-full px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white"
+                    className="w-full px-4 py-2 bg-[#0d1117] border border-[#30363d] rounded-lg text-white focus:outline-none focus:border-[#00a8e1]"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm text-zinc-400 mb-1">Quality</label>
+                    <label className="block text-sm text-[#8b949e] mb-1">Quality</label>
                     <select
                       value={editingItem.quality}
                       onChange={(e) => setEditingItem({ ...editingItem, quality: e.target.value })}
-                      className="w-full px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white"
+                      className="w-full px-4 py-2 bg-[#0d1117] border border-[#30363d] rounded-lg text-white focus:outline-none focus:border-[#00a8e1]"
                     >
                       <option value="480p">480p</option>
                       <option value="720p">720p</option>
@@ -413,41 +422,41 @@ export default function AdminDashboard() {
                   {editingItem.mediaType === 'series' && (
                     <>
                       <div>
-                        <label className="block text-sm text-zinc-400 mb-1">Seasons</label>
+                        <label className="block text-sm text-[#8b949e] mb-1">Seasons</label>
                         <input
                           type="number"
                           min="1"
                           value={editingItem.totalSeasons || 1}
                           onChange={(e) => setEditingItem({ ...editingItem, totalSeasons: parseInt(e.target.value) || 1 })}
-                          className="w-full px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white"
+                          className="w-full px-4 py-2 bg-[#0d1117] border border-[#30363d] rounded-lg text-white focus:outline-none focus:border-[#00a8e1]"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm text-zinc-400 mb-1">Episodes</label>
+                        <label className="block text-sm text-[#8b949e] mb-1">Episodes</label>
                         <input
                           type="number"
                           min="0"
                           value={editingItem.totalEpisodes || 0}
                           onChange={(e) => setEditingItem({ ...editingItem, totalEpisodes: parseInt(e.target.value) || 0 })}
-                          className="w-full px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white"
+                          className="w-full px-4 py-2 bg-[#0d1117] border border-[#30363d] rounded-lg text-white focus:outline-none focus:border-[#00a8e1]"
                         />
                       </div>
                     </>
                   )}
                 </div>
               </div>
-              <div className="p-6 border-t border-zinc-800 flex gap-3">
+              <div className="p-6 border-t border-[#30363d] flex gap-3">
                 <button
                   type="submit"
                   disabled={saving}
-                  className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg font-medium disabled:opacity-50"
+                  className="flex-1 px-4 py-2 bg-[#00a8e1] hover:bg-[#00b4e6] rounded-lg font-medium disabled:opacity-50 transition-all shadow-lg shadow-[#00a8e1]/20"
                 >
                   {saving ? 'Saving...' : 'Save'}
                 </button>
                 <button
                   type="button"
                   onClick={() => setEditingItem(null)}
-                  className="px-4 py-2 bg-zinc-700 hover:bg-zinc-600 rounded-lg"
+                  className="px-4 py-2 bg-[#21262d] hover:bg-[#30363d] border border-[#30363d] rounded-lg transition-all"
                 >
                   Cancel
                 </button>
