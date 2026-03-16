@@ -144,15 +144,17 @@ export default function HomePage() {
             <h1 className="text-4xl sm:text-6xl font-bold mb-4">{featured.title}</h1>
 
             <div className="flex items-center gap-4 mb-6">
-              <Link
-                href={`/movie/${featured.id}`}
-                className="flex items-center gap-2 px-8 py-3 bg-white text-zinc-900 rounded-lg font-medium hover:bg-zinc-200 transition-colors"
-              >
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M8 5v14l11-7z" />
-                </svg>
-                Play
-              </Link>
+              {featured.sources[0] && (
+                <Link
+                  href={`/watch/${featured.id}?source=${featured.sources[0].id}`}
+                  className="flex items-center gap-2 px-8 py-3 bg-white text-zinc-900 rounded-lg font-medium hover:bg-zinc-200 transition-colors"
+                >
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M8 5v14l11-7z" />
+                  </svg>
+                  Play
+                </Link>
+              )}
               <Link
                 href={`/movie/${featured.id}`}
                 className="flex items-center gap-2 px-4 py-3 bg-zinc-500/50 rounded-lg hover:bg-zinc-500/70 transition-colors"
