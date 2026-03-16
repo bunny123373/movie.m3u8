@@ -4,17 +4,21 @@ import { useState, useEffect, useCallback } from 'react';
 
 interface TmdbResult {
   id: number;
-  title: string;
+  title?: string;
+  name?: string;
   poster_path: string;
   backdrop_path: string;
-  release_date: string;
+  release_date?: string;
+  first_air_date?: string;
   vote_average: number;
   overview: string;
   genre_ids: number[];
+  media_type?: 'movie' | 'tv';
 }
 
 interface TmdbSearchProps {
-  onSelect: (movie: TmdbResult) => void;
+  onSelect: (movie: any) => void;
+  type?: 'movie' | 'tv' | 'all';
 }
 
 const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p/w500';
@@ -38,54 +42,98 @@ const GENRE_MAP: Record<number, string> = {
   53: 'Thriller',
   10752: 'War',
   37: 'Western',
+  10759: 'Action & Adventure',
+  10762: 'Kids',
+  10763: 'News',
+  10764: 'Reality',
+  10765: 'Sci-Fi & Fantasy',
+  10766: 'Soap',
+  10767: 'Talk',
+  10768: 'War & Politics',
 };
 
-export default function TmdbSearch({ onSelect }: TmdbSearchProps) {
+export default function TmdbSearch({ onSelect, type = 'all' }: TmdbSearchProps) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<TmdbResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [error, setError] = useState('');
 
-  const searchMovies = useCallback(async (searchQuery: string) => {
+  const searchTmdb = useCallback(async (searchQuery: string) => {
     if (!searchQuery.trim()) {
       setResults([]);
       return;
     }
 
     setLoading(true);
+    setError('');
+    
     try {
-      const apiKey = process.env.NEXT_PUBLIC_TMDB_API_KEY || '';
-      if (!apiKey || apiKey === 'your_tmdb_api_key_here') {
+      const apiKey = process.env.NEXT_PUBLIC_TMDB_API_KEY;
+      
+      if (!apiKey) {
+        setError('TMDB API key not configured');
         setResults([]);
         return;
       }
 
-      const res = await fetch(
-        `https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&query=${encodeURIComponent(searchQuery)}`
-      );
+      let endpoint: string;
+      if (type === 'movie') {
+        endpoint = `https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&query=${encodeURIComponent(searchQuery)}`;
+      } else if (type === 'tv') {
+        endpoint = `https://api.themoviedb.org/3/search/tv?api_key=${apiKey}&query=${encodeURIComponent(searchQuery)}`;
+      } else {
+        endpoint = `https://api.themoviedb.org/3/search/multi?api_key=${apiKey}&query=${encodeURIComponent(searchQuery)}`;
+      }
+
+      const res = await fetch(endpoint);
+      
+      if (!res.ok) {
+        throw new Error(`API error: ${res.status}`);
+      }
+      
       const data = await res.json();
-      setResults(data.results?.slice(0, 5) || []);
+      
+      let filteredResults = data.results?.slice(0, 8) || [];
+      
+      if (type === 'movie') {
+        filteredResults = filteredResults.filter((r: TmdbResult) => r.media_type !== 'tv');
+      } else if (type === 'tv') {
+        filteredResults = filteredResults.filter((r: TmdbResult) => r.media_type !== 'movie');
+      }
+      
+      setResults(filteredResults);
       setShowDropdown(true);
-    } catch (error) {
-      console.error('TMDB search error:', error);
+    } catch (err) {
+      console.error('TMDB search error:', err);
+      setError(err instanceof Error ? err.message : 'Search failed');
       setResults([]);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [type]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (query) searchMovies(query);
-    }, 400);
+      if (query && query.length >= 2) {
+        searchTmdb(query);
+      }
+    }, 500);
     return () => clearTimeout(timer);
-  }, [query, searchMovies]);
+  }, [query, searchTmdb]);
 
-  const handleSelect = (movie: TmdbResult) => {
-    const genres = movie.genre_ids.map((id) => GENRE_MAP[id]).filter(Boolean);
+  const handleSelect = (result: TmdbResult) => {
+    const genres = result.genre_ids.map((id) => GENRE_MAP[id]).filter(Boolean);
+    const title = result.title || result.name || '';
+    const releaseDate = result.release_date || result.first_air_date || '';
+    const mediaType = result.media_type || (type === 'tv' ? 'tv' : 'movie');
+    
     onSelect({
-      ...movie,
+      ...result,
+      title,
+      release_date: releaseDate,
       genre_ids: genres as unknown as number[],
+      media_type: mediaType as 'movie' | 'tv',
     });
     setQuery('');
     setShowDropdown(false);
@@ -98,7 +146,7 @@ export default function TmdbSearch({ onSelect }: TmdbSearchProps) {
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search movie from TMDB..."
+          placeholder={type === 'tv' ? 'Search TV series from TMDB...' : type === 'movie' ? 'Search movie from TMDB...' : 'Search from TMDB...'}
           className="w-full px-4 py-3 pl-10 text-sm bg-zinc-100 dark:bg-zinc-800 border-0 rounded-xl focus:outline-none focus:ring-2 focus:ring-zinc-300 dark:focus:ring-zinc-700 text-zinc-900 dark:text-zinc-100 placeholder-zinc-500"
         />
         <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -111,32 +159,41 @@ export default function TmdbSearch({ onSelect }: TmdbSearchProps) {
         )}
       </div>
 
+      {error && (
+        <p className="mt-2 text-sm text-red-500">{error}</p>
+      )}
+
       {showDropdown && results.length > 0 && (
-        <div className="absolute z-10 w-full mt-2 bg-white dark:bg-zinc-800 rounded-xl shadow-lg border border-zinc-200 dark:border-zinc-700 overflow-hidden">
-          {results.map((movie) => (
+        <div className="absolute z-10 w-full mt-2 bg-white dark:bg-zinc-800 rounded-xl shadow-lg border border-zinc-200 dark:border-zinc-700 overflow-hidden max-h-80 overflow-y-auto">
+          {results.map((result) => (
             <button
-              key={movie.id}
-              onClick={() => handleSelect(movie)}
+              key={result.id}
+              onClick={() => handleSelect(result)}
               className="w-full flex items-center gap-3 p-3 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors text-left"
             >
-              {movie.poster_path ? (
+              {result.poster_path ? (
                 <img
-                  src={`${TMDB_IMAGE_BASE}${movie.poster_path}`}
-                  alt={movie.title}
+                  src={`${TMDB_IMAGE_BASE}${result.poster_path}`}
+                  alt={result.title || result.name}
                   className="w-10 h-14 object-cover rounded"
                 />
               ) : (
                 <div className="w-10 h-14 bg-zinc-200 dark:bg-zinc-600 rounded" />
               )}
               <div className="flex-1 min-w-0">
-                <p className="font-medium text-zinc-900 dark:text-white truncate">{movie.title}</p>
+                <p className="font-medium text-zinc-900 dark:text-white truncate">{result.title || result.name}</p>
                 <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                  {movie.release_date?.split('-')[0] || 'N/A'}
+                  {result.release_date?.split('-')[0] || result.first_air_date?.split('-')[0] || 'N/A'}
+                  {result.media_type === 'tv' && ' • TV Series'}
                 </p>
               </div>
             </button>
           ))}
         </div>
+      )}
+
+      {showDropdown && query.length >= 2 && results.length === 0 && !loading && !error && (
+        <p className="mt-2 text-sm text-zinc-500">No results found</p>
       )}
     </div>
   );

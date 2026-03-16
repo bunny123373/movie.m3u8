@@ -8,6 +8,8 @@ export interface Source {
   type: 'mp4' | 'm3u8' | 'embed';
   priority: number;
   active: boolean;
+  season?: number;
+  episode?: number;
 }
 
 export interface Movie {
@@ -26,6 +28,28 @@ export interface Movie {
   runtime: string;
   fileSize: string;
   sources: Source[];
+  mediaType: 'movie';
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface Series {
+  _id?: ObjectId;
+  id: string;
+  title: string;
+  poster: string;
+  backdrop: string;
+  rating: number;
+  releaseDate: string;
+  overview: string;
+  genres: string[];
+  audioLanguages: string[];
+  subtitleLanguages: string[];
+  quality: string;
+  totalSeasons: number;
+  totalEpisodes: number;
+  sources: Source[];
+  mediaType: 'series';
   createdAt: Date;
   updatedAt: Date;
 }
@@ -116,7 +140,8 @@ export async function seedMovies(): Promise<void> {
         sources: [
           { id: 's1', name: 'Server 1', url: 'https://example.com/movie1', type: 'm3u8', priority: 1, active: true },
           { id: 's2', name: 'Server 2', url: 'https://example.com/movie2', type: 'embed', priority: 2, active: true },
-        ]
+        ],
+        mediaType: 'movie' as const,
       },
       {
         id: '2',
@@ -136,7 +161,8 @@ export async function seedMovies(): Promise<void> {
           { id: 's1', name: 'Server 1', url: 'https://example.com/devara1', type: 'm3u8', priority: 1, active: true },
           { id: 's2', name: 'Server 2', url: 'https://example.com/devara2', type: 'mp4', priority: 2, active: true },
           { id: 's3', name: 'Server 3', url: 'https://example.com/devara3', type: 'embed', priority: 3, active: true },
-        ]
+        ],
+        mediaType: 'movie' as const,
       },
       {
         id: '3',
@@ -154,7 +180,8 @@ export async function seedMovies(): Promise<void> {
         fileSize: '2.9 GB',
         sources: [
           { id: 's1', name: 'Server 1', url: 'https://example.com/kalki1', type: 'm3u8', priority: 1, active: true },
-        ]
+        ],
+        mediaType: 'movie' as const,
       },
       {
         id: '4',
@@ -173,7 +200,8 @@ export async function seedMovies(): Promise<void> {
         sources: [
           { id: 's1', name: 'Server 1', url: 'https://example.com/rrr1', type: 'm3u8', priority: 1, active: true },
           { id: 's2', name: 'Server 2', url: 'https://example.com/rrr2', type: 'embed', priority: 2, active: true },
-        ]
+        ],
+        mediaType: 'movie' as const,
       },
       {
         id: '5',
@@ -192,7 +220,8 @@ export async function seedMovies(): Promise<void> {
         sources: [
           { id: 's1', name: 'Server 1', url: 'https://example.com/jawan1', type: 'm3u8', priority: 1, active: true },
           { id: 's2', name: 'Server 2', url: 'https://example.com/jawan2', type: 'mp4', priority: 2, active: true },
-        ]
+        ],
+        mediaType: 'movie' as const,
       },
       {
         id: '6',
@@ -210,11 +239,63 @@ export async function seedMovies(): Promise<void> {
         fileSize: '1.8 GB',
         sources: [
           { id: 's1', name: 'Server 1', url: 'https://example.com/dunki1', type: 'embed', priority: 1, active: true },
-        ]
+        ],
+        mediaType: 'movie' as const,
       },
     ];
 
     await db.collection('movies').insertMany(sampleMovies as Movie[]);
     console.log('Sample movies seeded');
   }
+}
+
+export async function getAllSeries(): Promise<Series[]> {
+  const db = await getDatabase();
+  const series = await db.collection<Series>('series').find({}).sort({ createdAt: -1 }).toArray();
+  return series;
+}
+
+export async function getSeriesById(id: string): Promise<Series | null> {
+  const db = await getDatabase();
+  const series = await db.collection<Series>('series').findOne({ id });
+  return series;
+}
+
+export async function createSeries(series: Omit<Series, '_id' | 'createdAt' | 'updatedAt'>): Promise<Series> {
+  const db = await getDatabase();
+  const now = new Date();
+  const newSeries: Series = {
+    ...series,
+    createdAt: now,
+    updatedAt: now,
+  };
+  const result = await db.collection<Series>('series').insertOne(newSeries);
+  return { ...newSeries, _id: result.insertedId };
+}
+
+export async function updateSeries(id: string, updates: Partial<Series>): Promise<Series | null> {
+  const db = await getDatabase();
+  const result = await db.collection<Series>('series').findOneAndUpdate(
+    { id },
+    { $set: { ...updates, updatedAt: new Date() } },
+    { returnDocument: 'after' }
+  );
+  return result;
+}
+
+export async function deleteSeries(id: string): Promise<boolean> {
+  const db = await getDatabase();
+  const result = await db.collection<Series>('series').deleteOne({ id });
+  return result.deletedCount > 0;
+}
+
+export async function getAllMedia(): Promise<(Movie | Series)[]> {
+  const db = await getDatabase();
+  const [movies, series] = await Promise.all([
+    db.collection<Movie>('movies').find({}).toArray(),
+    db.collection<Series>('series').find({}).toArray(),
+  ]);
+  return [...movies, ...series].sort((a, b) => 
+    new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  );
 }

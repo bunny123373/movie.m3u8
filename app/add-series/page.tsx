@@ -7,35 +7,21 @@ import TmdbSearch from '@/components/TmdbSearch';
 import MoviePreview from '@/components/MoviePreview';
 import SourceInput from '@/components/SourceInput';
 
-interface TmdbMovie {
+interface TmdbResult {
   id: number;
-  title?: string;
   name?: string;
+  title?: string;
   poster_path: string;
   backdrop_path: string;
-  release_date?: string;
   first_air_date?: string;
+  release_date?: string;
   vote_average: number;
   overview: string;
   genre_ids: (string | number)[];
   media_type?: 'movie' | 'tv';
 }
 
-interface TmdbMovie {
-  id: number;
-  title?: string;
-  name?: string;
-  poster_path: string;
-  backdrop_path: string;
-  release_date?: string;
-  first_air_date?: string;
-  vote_average: number;
-  overview: string;
-  genre_ids: (string | number)[];
-  media_type?: 'movie' | 'tv';
-}
-
-export default function AddMoviePage() {
+export default function AddSeriesPage() {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
   const [title, setTitle] = useState('');
@@ -48,18 +34,18 @@ export default function AddMoviePage() {
   const [audioLanguages, setAudioLanguages] = useState<string[]>([]);
   const [subtitleLanguages, setSubtitleLanguages] = useState<string[]>([]);
   const [quality, setQuality] = useState('1080p');
-  const [runtime, setRuntime] = useState('');
-  const [fileSize, setFileSize] = useState('');
+  const [totalSeasons, setTotalSeasons] = useState(1);
+  const [totalEpisodes, setTotalEpisodes] = useState(0);
   const [sources, setSources] = useState<Source[]>([]);
 
-  const handleTmdbSelect = (movie: TmdbMovie) => {
-    setTitle(movie.title || movie.name || '');
-    setPoster(movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : '');
-    setBackdrop(movie.backdrop_path ? `https://image.tmdb.org/t/p/original${movie.backdrop_path}` : '');
-    setReleaseDate(movie.release_date || movie.first_air_date || '');
-    setRating(movie.vote_average);
-    setOverview(movie.overview);
-    setGenres(Array.isArray(movie.genre_ids) ? movie.genre_ids.map(String) : []);
+  const handleTmdbSelect = (result: TmdbResult) => {
+    setTitle(result.name || result.title || '');
+    setPoster(result.poster_path ? `https://image.tmdb.org/t/p/w500${result.poster_path}` : '');
+    setBackdrop(result.backdrop_path ? `https://image.tmdb.org/t/p/original${result.backdrop_path}` : '');
+    setReleaseDate(result.first_air_date || result.release_date || '');
+    setRating(result.vote_average);
+    setOverview(result.overview);
+    setGenres(Array.isArray(result.genre_ids) ? result.genre_ids.map(String) : []);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -67,7 +53,7 @@ export default function AddMoviePage() {
     setSaving(true);
 
     try {
-      const movieData = {
+      const seriesData = {
         id: Date.now().toString(),
         title,
         poster,
@@ -79,25 +65,26 @@ export default function AddMoviePage() {
         audioLanguages,
         subtitleLanguages,
         quality,
-        runtime,
-        fileSize,
+        totalSeasons,
+        totalEpisodes,
         sources,
+        mediaType: 'series' as const,
       };
 
-      const res = await fetch('/api/movies', {
+      const res = await fetch('/api/series', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(movieData),
+        body: JSON.stringify(seriesData),
       });
 
       if (res.ok) {
-        router.push('/');
+        router.push('/admin');
       } else {
-        alert('Failed to save movie');
+        alert('Failed to save series');
       }
     } catch (error) {
-      console.error('Error saving movie:', error);
-      alert('Error saving movie');
+      console.error('Error saving series:', error);
+      alert('Error saving series');
     } finally {
       setSaving(false);
     }
@@ -105,14 +92,14 @@ export default function AddMoviePage() {
 
   return (
     <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <h1 className="text-3xl font-bold text-zinc-900 dark:text-white mb-8">Add New Movie</h1>
+      <h1 className="text-3xl font-bold text-zinc-900 dark:text-white mb-8">Add New Series</h1>
 
       <form onSubmit={handleSubmit} className="space-y-8">
         <div>
           <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-            Search Movie
+            Search Series
           </label>
-          <TmdbSearch onSelect={handleTmdbSelect} />
+          <TmdbSearch onSelect={handleTmdbSelect} type="tv" />
         </div>
 
         {(title || poster) && (
@@ -140,7 +127,7 @@ export default function AddMoviePage() {
           </div>
           <div>
             <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-              Release Date
+              First Air Date
             </label>
             <input
               type="date"
@@ -188,12 +175,25 @@ export default function AddMoviePage() {
           </div>
           <div>
             <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-              Runtime (e.g., 2h 18m)
+              Total Seasons
             </label>
             <input
-              type="text"
-              value={runtime}
-              onChange={(e) => setRuntime(e.target.value)}
+              type="number"
+              min="1"
+              value={totalSeasons}
+              onChange={(e) => setTotalSeasons(parseInt(e.target.value) || 1)}
+              className="w-full px-4 py-3 text-sm bg-zinc-100 dark:bg-zinc-800 border-0 rounded-xl focus:outline-none focus:ring-2 focus:ring-zinc-300 dark:focus:ring-zinc-700 text-zinc-900 dark:text-white"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+              Total Episodes
+            </label>
+            <input
+              type="number"
+              min="0"
+              value={totalEpisodes}
+              onChange={(e) => setTotalEpisodes(parseInt(e.target.value) || 0)}
               className="w-full px-4 py-3 text-sm bg-zinc-100 dark:bg-zinc-800 border-0 rounded-xl focus:outline-none focus:ring-2 focus:ring-zinc-300 dark:focus:ring-zinc-700 text-zinc-900 dark:text-white"
             />
           </div>
@@ -211,17 +211,6 @@ export default function AddMoviePage() {
               <option value="1080p">1080p</option>
               <option value="4K">4K</option>
             </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-              File Size (e.g., 2.4 GB)
-            </label>
-            <input
-              type="text"
-              value={fileSize}
-              onChange={(e) => setFileSize(e.target.value)}
-              className="w-full px-4 py-3 text-sm bg-zinc-100 dark:bg-zinc-800 border-0 rounded-xl focus:outline-none focus:ring-2 focus:ring-zinc-300 dark:focus:ring-zinc-700 text-zinc-900 dark:text-white"
-            />
           </div>
         </div>
 
@@ -272,7 +261,7 @@ export default function AddMoviePage() {
             disabled={saving}
             className="flex-1 px-6 py-3 text-sm font-medium text-white bg-zinc-900 dark:bg-white rounded-full hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors disabled:opacity-50"
           >
-            {saving ? 'Saving...' : 'Save Movie'}
+            {saving ? 'Saving...' : 'Save Series'}
           </button>
           <button
             type="button"

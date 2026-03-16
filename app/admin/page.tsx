@@ -11,9 +11,11 @@ interface Source {
   type: 'mp4' | 'm3u8' | 'embed';
   priority: number;
   active: boolean;
+  season?: number;
+  episode?: number;
 }
 
-interface Movie {
+interface MediaItem {
   id: string;
   title: string;
   poster: string;
@@ -25,106 +27,114 @@ interface Movie {
   audioLanguages: string[];
   subtitleLanguages: string[];
   quality: string;
-  runtime: string;
-  fileSize: string;
+  runtime?: string;
+  fileSize?: string;
   sources: Source[];
+  mediaType: 'movie' | 'series';
+  totalSeasons?: number;
+  totalEpisodes?: number;
 }
 
 export default function AdminDashboard() {
-  const [movies, setMovies] = useState<Movie[]>([]);
+  const [media, setMedia] = useState<MediaItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [filterType, setFilterType] = useState<'all' | 'movie' | 'series'>('all');
   const [filterQuality, setFilterQuality] = useState('');
   const [sortBy, setSortBy] = useState<'title' | 'rating' | 'releaseDate'>('releaseDate');
-  const [selectedMovies, setSelectedMovies] = useState<string[]>([]);
-  const [editingMovie, setEditingMovie] = useState<Movie | null>(null);
+  const [selectedItems, setSelectedItems] = useState<string[]>([]);
+  const [editingItem, setEditingItem] = useState<MediaItem | null>(null);
   const [saving, setSaving] = useState(false);
+  const [activeTab, setActiveTab] = useState<'movies' | 'series'>('movies');
 
   useEffect(() => {
-    fetchMovies();
+    fetchMedia();
   }, []);
 
-  async function fetchMovies() {
+  async function fetchMedia() {
     try {
-      const res = await fetch('/api/movies');
-      if (res.ok) {
-        const data = await res.json();
-        setMovies(data);
-      }
+      const [moviesRes, seriesRes] = await Promise.all([
+        fetch('/api/movies'),
+        fetch('/api/series'),
+      ]);
+      
+      const movies = moviesRes.ok ? await moviesRes.json() : [];
+      const series = seriesRes.ok ? await seriesRes.json() : [];
+      
+      const allMedia: MediaItem[] = [
+        ...movies.map((m: MediaItem) => ({ ...m, mediaType: 'movie' as const })),
+        ...series.map((s: MediaItem) => ({ ...s, mediaType: 'series' as const })),
+      ];
+      
+      setMedia(allMedia);
     } catch (err) {
-      console.error('Failed to fetch movies:', err);
+      console.error('Failed to fetch media:', err);
     } finally {
       setLoading(false);
     }
   }
 
-  async function deleteMovie(id: string) {
-    if (!confirm('Are you sure you want to delete this movie?')) return;
+  async function deleteItem(id: string, type: 'movie' | 'series') {
+    if (!confirm('Are you sure you want to delete this?')) return;
     
     try {
-      const res = await fetch(`/api/movies?id=${id}`, { method: 'DELETE' });
+      const endpoint = type === 'movie' ? '/api/movies' : '/api/series';
+      const res = await fetch(`${endpoint}?id=${id}`, { method: 'DELETE' });
       if (res.ok) {
-        setMovies(movies.filter(m => m.id !== id));
-        setSelectedMovies(selectedMovies.filter(mid => mid !== id));
+        setMedia(media.filter(m => m.id !== id));
+        setSelectedItems(selectedItems.filter(mid => mid !== id));
       }
     } catch (err) {
-      console.error('Failed to delete movie:', err);
+      console.error('Failed to delete:', err);
     }
   }
 
   async function bulkDelete() {
-    if (selectedMovies.length === 0) return;
-    if (!confirm(`Delete ${selectedMovies.length} movies?`)) return;
+    if (selectedItems.length === 0) return;
+    if (!confirm(`Delete ${selectedItems.length} items?`)) return;
     
-    for (const id of selectedMovies) {
+    const moviesToDelete = selectedItems.filter(id => media.find(m => m.id === id && m.mediaType === 'movie'));
+    const seriesToDelete = selectedItems.filter(id => media.find(m => m.id === id && m.mediaType === 'series'));
+    
+    for (const id of moviesToDelete) {
       await fetch(`/api/movies?id=${id}`, { method: 'DELETE' });
     }
-    setMovies(movies.filter(m => !selectedMovies.includes(m.id)));
-    setSelectedMovies([]);
+    for (const id of seriesToDelete) {
+      await fetch(`/api/series?id=${id}`, { method: 'DELETE' });
+    }
+    
+    setMedia(media.filter(m => !selectedItems.includes(m.id)));
+    setSelectedItems([]);
   }
 
-  async function saveMovie(e: React.FormEvent) {
+  async function saveItem(e: React.FormEvent) {
     e.preventDefault();
-    if (!editingMovie) return;
+    if (!editingItem) return;
     
     setSaving(true);
     try {
-      const res = await fetch(`/api/movies?id=${editingMovie.id}`, {
+      const endpoint = editingItem.mediaType === 'movie' ? '/api/movies' : '/api/series';
+      const res = await fetch(`${endpoint}?id=${editingItem.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editingMovie),
+        body: JSON.stringify(editingItem),
       });
       
       if (res.ok) {
-        setMovies(movies.map(m => m.id === editingMovie.id ? editingMovie : m));
-        setEditingMovie(null);
+        setMedia(media.map(m => m.id === editingItem.id ? editingItem : m));
+        setEditingItem(null);
       }
     } catch (err) {
-      console.error('Failed to save movie:', err);
+      console.error('Failed to save:', err);
     } finally {
       setSaving(false);
     }
   }
 
-  function toggleSelectAll() {
-    if (selectedMovies.length === filteredMovies.length) {
-      setSelectedMovies([]);
-    } else {
-      setSelectedMovies(filteredMovies.map(m => m.id));
-    }
-  }
-
-  function toggleSelect(id: string) {
-    if (selectedMovies.includes(id)) {
-      setSelectedMovies(selectedMovies.filter(mid => mid !== id));
-    } else {
-      setSelectedMovies([...selectedMovies, id]);
-    }
-  }
-
-  const filteredMovies = movies
+  const filteredMedia = media
     .filter(m => 
       m.title.toLowerCase().includes(search.toLowerCase()) &&
+      (filterType === 'all' || m.mediaType === filterType) &&
       (filterQuality === '' || m.quality === filterQuality)
     )
     .sort((a, b) => {
@@ -133,17 +143,35 @@ export default function AdminDashboard() {
       return new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime();
     });
 
+  const movies = filteredMedia.filter(m => m.mediaType === 'movie');
+  const series = filteredMedia.filter(m => m.mediaType === 'series');
+
   const stats = {
-    total: movies.length,
-    totalSources: movies.reduce((acc, m) => acc + m.sources.length, 0),
-    avgRating: movies.length ? (movies.reduce((acc, m) => acc + m.rating, 0) / movies.length).toFixed(1) : 0,
-    byQuality: movies.reduce((acc, m) => {
-      acc[m.quality] = (acc[m.quality] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>),
+    totalMovies: media.filter(m => m.mediaType === 'movie').length,
+    totalSeries: media.filter(m => m.mediaType === 'series').length,
+    avgRating: media.length ? (media.reduce((acc, m) => acc + m.rating, 0) / media.length).toFixed(1) : 0,
   };
 
-  const qualities = [...new Set(movies.map(m => m.quality))];
+  const qualities = [...new Set(media.map(m => m.quality))];
+
+  function toggleSelectAll() {
+    const currentList = activeTab === 'movies' ? movies : series;
+    if (selectedItems.length === currentList.length) {
+      setSelectedItems(selectedItems.filter(id => !currentList.find(m => m.id === id)));
+    } else {
+      setSelectedItems([...new Set([...selectedItems, ...currentList.map(m => m.id)])]);
+    }
+  }
+
+  function toggleSelect(id: string) {
+    if (selectedItems.includes(id)) {
+      setSelectedItems(selectedItems.filter(mid => mid !== id));
+    } else {
+      setSelectedItems([...selectedItems, id]);
+    }
+  }
+
+  const currentList = activeTab === 'movies' ? movies : series;
 
   if (loading) {
     return (
@@ -161,41 +189,67 @@ export default function AdminDashboard() {
     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-2xl font-bold text-zinc-900 dark:text-white">Admin Dashboard</h1>
-        <Link
-          href="/add-movie"
-          className="px-4 py-2 text-sm font-medium text-white bg-zinc-900 dark:bg-white rounded-full hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors"
-        >
-          + Add Movie
-        </Link>
+        <div className="flex gap-2">
+          <Link
+            href="/add-movie"
+            className="px-4 py-2 text-sm font-medium text-white bg-zinc-900 dark:bg-white rounded-full hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors"
+          >
+            + Movie
+          </Link>
+          <Link
+            href="/add-series"
+            className="px-4 py-2 text-sm font-medium text-zinc-900 dark:text-white bg-zinc-100 dark:bg-zinc-800 rounded-full hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+          >
+            + Series
+          </Link>
+        </div>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-3 gap-4 mb-8">
         <div className="p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl">
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">Total Movies</p>
-          <p className="text-2xl font-bold text-zinc-900 dark:text-white">{stats.total}</p>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400">Movies</p>
+          <p className="text-2xl font-bold text-zinc-900 dark:text-white">{stats.totalMovies}</p>
         </div>
         <div className="p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl">
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">Total Sources</p>
-          <p className="text-2xl font-bold text-zinc-900 dark:text-white">{stats.totalSources}</p>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400">Series</p>
+          <p className="text-2xl font-bold text-zinc-900 dark:text-white">{stats.totalSeries}</p>
         </div>
         <div className="p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl">
           <p className="text-sm text-zinc-500 dark:text-zinc-400">Avg Rating</p>
           <p className="text-2xl font-bold text-zinc-900 dark:text-white">⭐ {stats.avgRating}</p>
         </div>
-        <div className="p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl">
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">By Quality</p>
-          <p className="text-lg font-bold text-zinc-900 dark:text-white">
-            {Object.entries(stats.byQuality).map(([q, c]) => `${q}:${c}`).join(' | ')}
-          </p>
-        </div>
+      </div>
+
+      {/* Tabs */}
+      <div className="flex gap-2 mb-6">
+        <button
+          onClick={() => setActiveTab('movies')}
+          className={`px-4 py-2 text-sm font-medium rounded-full transition-colors ${
+            activeTab === 'movies'
+              ? 'bg-zinc-900 text-white dark:bg-white dark:text-zinc-900'
+              : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800'
+          }`}
+        >
+          Movies ({movies.length})
+        </button>
+        <button
+          onClick={() => setActiveTab('series')}
+          className={`px-4 py-2 text-sm font-medium rounded-full transition-colors ${
+            activeTab === 'series'
+              ? 'bg-zinc-900 text-white dark:bg-white dark:text-zinc-900'
+              : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800'
+          }`}
+        >
+          Series ({series.length})
+        </button>
       </div>
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4 mb-6">
         <input
           type="text"
-          placeholder="Search movies..."
+          placeholder="Search..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="flex-1 px-4 py-2 text-sm bg-zinc-100 dark:bg-zinc-800 border-0 rounded-xl focus:outline-none focus:ring-2 focus:ring-zinc-300 dark:focus:ring-zinc-700 text-zinc-900 dark:text-white"
@@ -222,10 +276,10 @@ export default function AdminDashboard() {
       </div>
 
       {/* Bulk Actions */}
-      {selectedMovies.length > 0 && (
+      {selectedItems.length > 0 && (
         <div className="flex items-center gap-4 mb-4 p-3 bg-zinc-100 dark:bg-zinc-800 rounded-xl">
           <span className="text-sm text-zinc-600 dark:text-zinc-400">
-            {selectedMovies.length} selected
+            {selectedItems.length} selected
           </span>
           <button
             onClick={bulkDelete}
@@ -234,7 +288,7 @@ export default function AdminDashboard() {
             Delete Selected
           </button>
           <button
-            onClick={() => setSelectedMovies([])}
+            onClick={() => setSelectedItems([])}
             className="px-3 py-1.5 text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
           >
             Clear
@@ -251,35 +305,35 @@ export default function AdminDashboard() {
                 <th className="px-4 py-4 text-left">
                   <input
                     type="checkbox"
-                    checked={selectedMovies.length === filteredMovies.length && filteredMovies.length > 0}
+                    checked={selectedItems.length === currentList.length && currentList.length > 0}
                     onChange={toggleSelectAll}
                     className="w-4 h-4 rounded border-zinc-300"
                   />
                 </th>
-                <th className="px-4 py-4 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Movie</th>
+                <th className="px-4 py-4 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Title</th>
                 <th className="px-4 py-4 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Quality</th>
-                <th className="px-4 py-4 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Sources</th>
+                <th className="px-4 py-4 text-left text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Type</th>
                 <th className="px-4 py-4 text-right text-xs font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
-              {filteredMovies.map((movie) => (
-                <tr key={movie.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
+              {currentList.map((item) => (
+                <tr key={item.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
                   <td className="px-4 py-4">
                     <input
                       type="checkbox"
-                      checked={selectedMovies.includes(movie.id)}
-                      onChange={() => toggleSelect(movie.id)}
+                      checked={selectedItems.includes(item.id)}
+                      onChange={() => toggleSelect(item.id)}
                       className="w-4 h-4 rounded border-zinc-300"
                     />
                   </td>
                   <td className="px-4 py-4">
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-16 rounded-lg overflow-hidden bg-zinc-200 dark:bg-zinc-700 shrink-0">
-                        {movie.poster && (
+                        {item.poster && (
                           <Image
-                            src={movie.poster}
-                            alt={movie.title}
+                            src={item.poster}
+                            alt={item.title}
                             width={48}
                             height={64}
                             className="w-full h-full object-cover"
@@ -287,39 +341,38 @@ export default function AdminDashboard() {
                         )}
                       </div>
                       <div>
-                        <p className="font-medium text-zinc-900 dark:text-white">{movie.title}</p>
+                        <p className="font-medium text-zinc-900 dark:text-white">{item.title}</p>
                         <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                          {movie.releaseDate.split('-')[0]} • ⭐ {movie.rating}
+                          {item.releaseDate.split('-')[0]} • ⭐ {item.rating}
+                          {item.mediaType === 'series' && ` • S${item.totalSeasons}E${item.totalEpisodes}`}
                         </p>
                       </div>
                     </div>
                   </td>
                   <td className="px-4 py-4">
                     <span className="px-2 py-1 text-xs font-medium text-zinc-700 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-700 rounded">
-                      {movie.quality}
+                      {item.quality}
                     </span>
                   </td>
                   <td className="px-4 py-4">
-                    <span className="text-sm text-zinc-600 dark:text-zinc-400">
-                      {movie.sources.length} source{movie.sources.length !== 1 ? 's' : ''}
+                    <span className={`px-2 py-1 text-xs font-medium rounded ${
+                      item.mediaType === 'movie'
+                        ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                        : 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'
+                    }`}>
+                      {item.mediaType === 'movie' ? 'Movie' : 'Series'}
                     </span>
                   </td>
                   <td className="px-4 py-4 text-right">
                     <div className="flex items-center justify-end gap-2">
                       <button
-                        onClick={() => setEditingMovie(movie)}
+                        onClick={() => setEditingItem(item)}
                         className="px-3 py-1.5 text-xs font-medium text-zinc-700 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-800 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
                       >
                         Edit
                       </button>
-                      <Link
-                        href={`/movie/${movie.id}`}
-                        className="px-3 py-1.5 text-xs font-medium text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/20 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors"
-                      >
-                        View
-                      </Link>
                       <button
-                        onClick={() => deleteMovie(movie.id)}
+                        onClick={() => deleteItem(item.id, item.mediaType)}
                         className="px-3 py-1.5 text-xs font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors"
                       >
                         Delete
@@ -332,28 +385,28 @@ export default function AdminDashboard() {
           </table>
         </div>
 
-        {filteredMovies.length === 0 && (
+        {currentList.length === 0 && (
           <div className="p-12 text-center">
-            <p className="text-zinc-500 dark:text-zinc-400">No movies found</p>
+            <p className="text-zinc-500 dark:text-zinc-400">No {activeTab} found</p>
           </div>
         )}
       </div>
 
       {/* Edit Modal */}
-      {editingMovie && (
+      {editingItem && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
           <div className="bg-white dark:bg-zinc-900 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <form onSubmit={saveMovie}>
+            <form onSubmit={saveItem}>
               <div className="p-6 border-b border-zinc-200 dark:border-zinc-800">
-                <h2 className="text-xl font-bold text-zinc-900 dark:text-white">Edit Movie</h2>
+                <h2 className="text-xl font-bold text-zinc-900 dark:text-white">Edit {editingItem.mediaType === 'movie' ? 'Movie' : 'Series'}</h2>
               </div>
               <div className="p-6 space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Title</label>
                   <input
                     type="text"
-                    value={editingMovie.title}
-                    onChange={(e) => setEditingMovie({ ...editingMovie, title: e.target.value })}
+                    value={editingItem.title}
+                    onChange={(e) => setEditingItem({ ...editingItem, title: e.target.value })}
                     className="w-full px-4 py-2 text-sm bg-zinc-100 dark:bg-zinc-800 border-0 rounded-xl text-zinc-900 dark:text-white"
                     required
                   />
@@ -362,8 +415,8 @@ export default function AdminDashboard() {
                   <div>
                     <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Quality</label>
                     <select
-                      value={editingMovie.quality}
-                      onChange={(e) => setEditingMovie({ ...editingMovie, quality: e.target.value })}
+                      value={editingItem.quality}
+                      onChange={(e) => setEditingItem({ ...editingItem, quality: e.target.value })}
                       className="w-full px-4 py-2 text-sm bg-zinc-100 dark:bg-zinc-800 border-0 rounded-xl text-zinc-900 dark:text-white"
                     >
                       <option value="480p">480p</option>
@@ -372,44 +425,38 @@ export default function AdminDashboard() {
                       <option value="4K">4K</option>
                     </select>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Runtime</label>
-                    <input
-                      type="text"
-                      value={editingMovie.runtime}
-                      onChange={(e) => setEditingMovie({ ...editingMovie, runtime: e.target.value })}
-                      className="w-full px-4 py-2 text-sm bg-zinc-100 dark:bg-zinc-800 border-0 rounded-xl text-zinc-900 dark:text-white"
-                      placeholder="2h 30m"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">File Size</label>
-                  <input
-                    type="text"
-                    value={editingMovie.fileSize}
-                    onChange={(e) => setEditingMovie({ ...editingMovie, fileSize: e.target.value })}
-                    className="w-full px-4 py-2 text-sm bg-zinc-100 dark:bg-zinc-800 border-0 rounded-xl text-zinc-900 dark:text-white"
-                    placeholder="2.4 GB"
-                  />
+                  {editingItem.mediaType === 'series' && (
+                    <>
+                      <div>
+                        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Seasons</label>
+                        <input
+                          type="number"
+                          min="1"
+                          value={editingItem.totalSeasons || 1}
+                          onChange={(e) => setEditingItem({ ...editingItem, totalSeasons: parseInt(e.target.value) || 1 })}
+                          className="w-full px-4 py-2 text-sm bg-zinc-100 dark:bg-zinc-800 border-0 rounded-xl text-zinc-900 dark:text-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Episodes</label>
+                        <input
+                          type="number"
+                          min="0"
+                          value={editingItem.totalEpisodes || 0}
+                          onChange={(e) => setEditingItem({ ...editingItem, totalEpisodes: parseInt(e.target.value) || 0 })}
+                          className="w-full px-4 py-2 text-sm bg-zinc-100 dark:bg-zinc-800 border-0 rounded-xl text-zinc-900 dark:text-white"
+                        />
+                      </div>
+                    </>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Overview</label>
                   <textarea
-                    value={editingMovie.overview}
-                    onChange={(e) => setEditingMovie({ ...editingMovie, overview: e.target.value })}
+                    value={editingItem.overview}
+                    onChange={(e) => setEditingItem({ ...editingItem, overview: e.target.value })}
                     rows={3}
                     className="w-full px-4 py-2 text-sm bg-zinc-100 dark:bg-zinc-800 border-0 rounded-xl text-zinc-900 dark:text-white resize-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Genres (comma separated)</label>
-                  <input
-                    type="text"
-                    value={editingMovie.genres.join(', ')}
-                    onChange={(e) => setEditingMovie({ ...editingMovie, genres: e.target.value.split(',').map(s => s.trim()).filter(Boolean) })}
-                    className="w-full px-4 py-2 text-sm bg-zinc-100 dark:bg-zinc-800 border-0 rounded-xl text-zinc-900 dark:text-white"
-                    placeholder="Action, Drama"
                   />
                 </div>
               </div>
@@ -423,7 +470,7 @@ export default function AdminDashboard() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setEditingMovie(null)}
+                  onClick={() => setEditingItem(null)}
                   className="px-4 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-800 rounded-xl hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
                 >
                   Cancel
