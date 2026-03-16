@@ -13,19 +13,21 @@ export default function WatchPage() {
   const params = useParams();
   const searchParams = useSearchParams();
   const sourceId = searchParams.get('source');
+  const slugOrId = Array.isArray(params.id) ? params.id[0] : params.id;
   
   const [movie, setMovie] = useState<(MediaItem | MediaSeries) | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchMovie() {
+      if (!slugOrId) return;
       try {
-        const res = await fetch(`/api/movies?id=${params.id}`);
+        const res = await fetch(`/api/movies?slug=${slugOrId}`);
         if (res.ok) {
           const data = await res.json();
           setMovie({ ...data, mediaType: 'movie' as const });
         } else {
-          const seriesRes = await fetch(`/api/series?id=${params.id}`);
+          const seriesRes = await fetch(`/api/series?slug=${slugOrId}`);
           if (seriesRes.ok) {
             const seriesData = await seriesRes.json();
             setMovie({ ...seriesData, mediaType: 'series' as const });
@@ -37,10 +39,10 @@ export default function WatchPage() {
         setLoading(false);
       }
     }
-    if (params.id) {
+    if (slugOrId) {
       fetchMovie();
     }
-  }, [params.id]);
+  }, [slugOrId]);
 
   if (loading) {
     return (
