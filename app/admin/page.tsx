@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { createSlug } from '@/lib/types';
 
 interface Source {
   id: string;
@@ -378,7 +379,20 @@ export default function AdminDashboard() {
                   <input
                     type="text"
                     value={editingItem.title}
-                    onChange={(e) => setEditingItem({ ...editingItem, title: e.target.value })}
+                    onChange={(e) => setEditingItem({ 
+                      ...editingItem, 
+                      title: e.target.value,
+                      slug: createSlug(e.target.value, editingItem.id)
+                    })}
+                    className="w-full px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-zinc-400 mb-1">Slug</label>
+                  <input
+                    type="text"
+                    value={editingItem.slug || ''}
+                    onChange={(e) => setEditingItem({ ...editingItem, slug: e.target.value })}
                     className="w-full px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white"
                   />
                 </div>

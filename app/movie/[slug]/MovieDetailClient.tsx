@@ -11,33 +11,43 @@ type MediaSeries = Series & { mediaType: 'series' };
 
 export default function MovieDetailClient() {
   const params = useParams();
+  const slug = Array.isArray(params.slug) ? params.slug[0] : params.slug;
   const [movie, setMovie] = useState<(MediaItem | MediaSeries) | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     async function fetchMovie() {
+      if (!slug) {
+        setError('Invalid slug');
+        setLoading(false);
+        return;
+      }
       try {
-        const res = await fetch(`/api/movies?slug=${params.slug}`);
+        const res = await fetch(`/api/movies?slug=${slug}`);
         if (res.ok) {
           const data = await res.json();
           setMovie({ ...data, mediaType: 'movie' as const });
         } else {
-          const seriesRes = await fetch(`/api/series?slug=${params.slug}`);
+          const seriesRes = await fetch(`/api/series?slug=${slug}`);
           if (seriesRes.ok) {
             const seriesData = await seriesRes.json();
             setMovie({ ...seriesData, mediaType: 'series' as const });
+          } else {
+            setError('Movie not found');
           }
         }
       } catch (error) {
         console.error('Error fetching movie:', error);
+        setError('Failed to load');
       } finally {
         setLoading(false);
       }
     }
-    if (params.slug) {
+    if (slug) {
       fetchMovie();
     }
-  }, [params.slug]);
+  }, [slug]);
 
   if (loading) {
     return (
@@ -58,7 +68,7 @@ export default function MovieDetailClient() {
     return (
       <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
         <div className="text-center">
-          <p className="text-zinc-400 text-lg">Movie not found</p>
+          <p className="text-zinc-400 text-lg">{error || 'Movie not found'}</p>
           <Link href="/" className="mt-4 inline-block text-zinc-500 hover:text-white transition-colors">
             Go back home
           </Link>
