@@ -8,45 +8,16 @@ interface VideoPlayerProps {
   source: Source;
 }
 
-function canEmbedUrl(url: string): boolean {
-  try {
-    const urlObj = new URL(url);
-    const hostname = urlObj.hostname.toLowerCase();
-    const isEmbedHost = hostname.includes('embed') || 
-      hostname.includes('stream') ||
-      hostname.includes('player') ||
-      hostname.includes('video') ||
-      hostname.includes('watch') ||
-      hostname.includes('play') ||
-      hostname.includes('cdn') ||
-      hostname.includes('media') ||
-      hostname.includes('streamtape') ||
-      hostname.includes('dood') ||
-      hostname.includes('filemoon') ||
-      hostname.includes('streamwish') ||
-      hostname.includes('vidguard') ||
-      hostname.includes('voe') ||
-      hostname.includes('vtube') ||
-      hostname.includes('yavu') ||
-      hostname.includes('html5') ||
-      url.includes('/embed/') ||
-      url.includes('/player/');
-    return isEmbedHost;
-  } catch {
-    return false;
-  }
-}
-
 export default function VideoPlayer({ source }: VideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<Hls | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
-  const isEmbeddable = source.type === 'embed' || canEmbedUrl(source.url);
+  const isEmbed = source.type === 'embed';
 
   useEffect(() => {
-    if (isEmbeddable) {
+    if (isEmbed) {
       setLoading(false);
       return;
     }
@@ -54,7 +25,7 @@ export default function VideoPlayer({ source }: VideoPlayerProps) {
     const video = videoRef.current;
     if (!video) return;
 
-    if (source.type === 'm3u8') {
+    if (source.type === 'm3u8' || source.url.includes('.m3u8')) {
       if (Hls.isSupported()) {
         const hls = new Hls({
           enableWorker: true,
@@ -86,7 +57,7 @@ export default function VideoPlayer({ source }: VideoPlayerProps) {
         setError(true);
         setLoading(false);
       }
-    } else if (source.type === 'mp4') {
+    } else {
       video.src = source.url;
       video.addEventListener('loadeddata', () => setLoading(false));
       video.addEventListener('error', () => {
@@ -100,13 +71,21 @@ export default function VideoPlayer({ source }: VideoPlayerProps) {
         hlsRef.current.destroy();
       }
     };
-  }, [source, isEmbeddable]);
+  }, [source, isEmbed]);
 
-  if (isEmbeddable) {
+  if (isEmbed) {
+    let embedUrl = source.url;
+    if (!embedUrl.startsWith('http') && !embedUrl.startsWith('//')) {
+      embedUrl = '//' + embedUrl;
+    }
+    if (embedUrl.startsWith('http:')) {
+      embedUrl = embedUrl.replace('http:', 'https:');
+    }
+    
     return (
       <div className="w-full aspect-video rounded-xl overflow-hidden bg-black">
         <iframe
-          src={source.url}
+          src={embedUrl}
           className="w-full h-full"
           allowFullScreen
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
