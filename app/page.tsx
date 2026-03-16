@@ -119,7 +119,7 @@ export default function HomePage() {
 
   return (
     <main className="min-h-screen bg-zinc-950 text-white">
-      <div className="relative w-full min-h-[85vh]">
+      <div className="relative w-full min-h-[50vh] sm:min-h-[70vh] lg:min-h-[85vh]">
         <div className="absolute inset-0">
           <Image
             src={featured.backdrop}
@@ -128,30 +128,30 @@ export default function HomePage() {
             priority
             className="object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-zinc-950 via-zinc-950/80 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-zinc-950 via-zinc-950/90 to-transparent sm:via-zinc-950/80" />
           <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-transparent to-zinc-950/60" />
         </div>
 
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-[30vh] pb-16">
-          <div className="max-w-2xl">
-            <div className="flex items-center gap-3 mb-4">
-              <span className="text-green-400 font-medium">NETFLIX</span>
-              <span className="text-zinc-400 text-sm">{year}</span>
+        <div className="relative z-10 max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 pt-[20vh] sm:pt-[30vh] pb-8 sm:pb-16">
+          <div className="max-w-xl sm:max-w-2xl">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+              <span className="text-green-400 font-medium text-xs sm:text-sm">NETFLIX</span>
+              <span className="text-zinc-400 text-xs sm:text-sm">{year}</span>
               <span className="px-2 py-0.5 text-xs border border-zinc-600 rounded">{featured.quality}</span>
               {isSeries && (
                 <span className="px-2 py-0.5 text-xs bg-purple-600 rounded">Series</span>
               )}
             </div>
 
-            <h1 className="text-4xl sm:text-6xl font-bold mb-4">{featured.title}</h1>
+            <h1 className="text-2xl sm:text-4xl lg:text-6xl font-bold mb-3 sm:mb-4">{featured.title}</h1>
 
-            <div className="flex items-center gap-4 mb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-4 sm:mb-6">
               {featured.sources[0] && (
                 <Link
-                  href={`/watch/${featured.id}?source=${featured.sources[0].id}`}
-                  className="flex items-center gap-2 px-8 py-3 bg-white text-zinc-900 rounded-lg font-medium hover:bg-zinc-200 transition-colors"
+                  href={`/watch/${featured.slug || featured.id}?source=${featured.sources[0].id}`}
+                  className="flex items-center justify-center gap-2 px-6 sm:px-8 py-2.5 sm:py-3 bg-white text-zinc-900 rounded-lg font-medium hover:bg-zinc-200 transition-colors text-sm sm:text-base"
                 >
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-5" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M8 5v14l11-7z" />
                   </svg>
                   Play
@@ -159,20 +159,20 @@ export default function HomePage() {
               )}
               <Link
                 href={`/movie/${featured.slug || featured.id}`}
-                className="flex items-center gap-2 px-4 py-3 bg-zinc-500/50 rounded-lg hover:bg-zinc-500/70 transition-colors"
+                className="flex items-center justify-center gap-2 px-4 py-2.5 sm:py-3 bg-zinc-500/50 rounded-lg hover:bg-zinc-500/70 transition-colors text-sm"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                More Info
+                Info
               </Link>
             </div>
 
-            <p className="text-lg text-zinc-300 mb-6 line-clamp-3">{featured.overview}</p>
+            <p className="text-sm sm:text-lg text-zinc-300 mb-4 sm:mb-6 line-clamp-2 sm:line-clamp-3">{featured.overview}</p>
 
             <div className="flex flex-wrap gap-2">
               {featured.genres.map((genre) => (
-                <span key={genre} className="px-3 py-1 text-sm bg-zinc-800/50 rounded-full">
+                <span key={genre} className="px-2 sm:px-3 py-1 text-xs sm:text-sm bg-zinc-800/50 rounded-full">
                   {genre}
                 </span>
               ))}

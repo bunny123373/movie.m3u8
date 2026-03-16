@@ -98,7 +98,7 @@ export default function WatchPage() {
         </div>
 
         {currentSource.type === 'embed' ? (
-          <div className="w-full h-[85vh]">
+          <div className="w-full aspect-video sm:aspect-[16/9] md:h-[85vh]">
             <iframe
               src={currentSource.url}
               className="w-full h-full border-0"
@@ -107,7 +107,9 @@ export default function WatchPage() {
             />
           </div>
         ) : (
-          <VideoPlayer source={currentSource} />
+          <div className="w-full sm:max-w-4xl mx-auto">
+            <VideoPlayer source={currentSource} />
+          </div>
         )}
       </div>
 
