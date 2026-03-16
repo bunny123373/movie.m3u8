@@ -14,8 +14,17 @@ export const metadata: Metadata = {
   description: "Stream movies and series online",
   manifest: "/manifest.json",
   icons: {
-    icon: "/favicon.png",
-    apple: "/icon-192.png",
+    icon: [
+      { url: "/favicon.png", sizes: "512x512", type: "image/png" },
+      { url: "/favicon.png", sizes: "192x192", type: "image/png" }
+    ],
+    apple: "/favicon.png",
+    shortcut: "/favicon.png",
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "StreamGrid",
   },
 };
 
