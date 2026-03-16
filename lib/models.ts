@@ -23,6 +23,12 @@ const movieSchema = {
 
 export async function getAllMovies(): Promise<any[]> {
   const db = await getDatabase();
+  const count = await db.collection('movies').countDocuments();
+  
+  if (count === 0) {
+    await seedMovies();
+  }
+  
   const movies = await db.collection('movies').find({}).sort({ createdAt: -1 }).toArray();
   return movies;
 }
@@ -211,8 +217,67 @@ export async function seedMovies(): Promise<void> {
   }
 }
 
+export async function seedSeries(): Promise<void> {
+  const db = await getDatabase();
+  const count = await db.collection('series').countDocuments();
+  
+  if (count === 0) {
+    const sampleSeries = [
+      {
+        id: 's1',
+        slug: 'breaking-bad-s1',
+        title: 'Breaking Bad',
+        poster: 'https://image.tmdb.org/t/p/w500/ggFHVNu6YYI5L9pCfOacjizRGt.jpg',
+        backdrop: 'https://image.tmdb.org/t/p/original//tsRy63Mu5cu8etL1X7ZLyf7UP1M.jpg',
+        rating: 9.5,
+        releaseDate: '2008-01-20',
+        overview: 'A high school chemistry teacher diagnosed with lung cancer turns to cooking meth.',
+        genres: ['Drama', 'Thriller'],
+        audioLanguages: ['English', 'Spanish'],
+        subtitleLanguages: ['English', 'Spanish'],
+        quality: '1080p',
+        totalSeasons: 5,
+        totalEpisodes: 62,
+        sources: [
+          { id: 's1', name: 'Server 1', url: 'https://example.com/breakingbad1', type: 'embed', priority: 1, active: true },
+        ],
+        mediaType: 'series' as const,
+      },
+      {
+        id: 's2',
+        slug: 'money-heist-s2',
+        title: 'Money Heist',
+        poster: 'https://image.tmdb.org/t/p/w500/reEMJA1uzscCbkpeRJeTT2bjqUp.jpg',
+        backdrop: 'https://image.tmdb.org/t/p/original//1eB9Tcyq6FHiGJKC9sXJQXNWec.jpg',
+        rating: 8.2,
+        releaseDate: '2017-05-02',
+        overview: 'A group of robbers plan to heist the Royal Mint of Spain.',
+        genres: ['Action', 'Drama', 'Thriller'],
+        audioLanguages: ['Spanish', 'English'],
+        subtitleLanguages: ['English', 'Spanish'],
+        quality: '1080p',
+        totalSeasons: 5,
+        totalEpisodes: 41,
+        sources: [
+          { id: 's1', name: 'Server 1', url: 'https://example.com/moneyheist1', type: 'embed', priority: 1, active: true },
+        ],
+        mediaType: 'series' as const,
+      },
+    ];
+
+    await db.collection('series').insertMany(sampleSeries);
+    console.log('Sample series seeded');
+  }
+}
+
 export async function getAllSeries(): Promise<any[]> {
   const db = await getDatabase();
+  const count = await db.collection('series').countDocuments();
+  
+  if (count === 0) {
+    await seedSeries();
+  }
+  
   const series = await db.collection('series').find({}).sort({ createdAt: -1 }).toArray();
   return series;
 }
