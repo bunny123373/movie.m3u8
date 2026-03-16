@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -13,118 +13,152 @@ interface Source {
   active: boolean;
 }
 
-interface MovieCardProps {
-  movie: {
-    id: string;
-    slug?: string;
-    title: string;
-    poster: string;
-    backdrop: string;
-    rating: number;
-    releaseDate: string;
-    overview: string;
-    genres: string[];
-    audioLanguages: string[];
-    subtitleLanguages: string[];
-    quality: string;
-    runtime?: string;
-    fileSize?: string;
-    mediaType?: 'movie' | 'series';
-    totalSeasons?: number;
-    totalEpisodes?: number;
-    sources: Source[];
-  };
+interface CardMedia {
+  id: string;
+  slug?: string;
+  title: string;
+  poster: string;
+  backdrop: string;
+  rating: number;
+  releaseDate: string;
+  overview: string;
+  genres: string[];
+  audioLanguages: string[];
+  subtitleLanguages: string[];
+  quality: string;
+  runtime?: string;
+  fileSize?: string;
+  mediaType?: 'movie' | 'series';
+  totalSeasons?: number;
+  totalEpisodes?: number;
+  sources: Source[];
 }
 
-export default function MovieCard({ movie }: MovieCardProps) {
-  const [isFavorite, setIsFavorite] = useState(false);
-  const year = movie.releaseDate.split('-')[0];
-  const activeSources = movie.sources.filter(s => s.active).length;
-  const linkSlug = movie.slug || movie.id;
+interface FavoriteItem {
+  id: string;
+}
 
-  useEffect(() => {
+interface MovieCardProps {
+  movie: CardMedia;
+  className?: string;
+}
+
+function readFavorites(): FavoriteItem[] {
+  try {
     const stored = localStorage.getItem('favorites');
-    if (stored) {
-      const favs = JSON.parse(stored);
-      setIsFavorite(favs.some((f: any) => f.id === movie.id));
+    if (!stored) {
+      return [];
     }
-  }, [movie.id]);
+    const parsed: unknown = JSON.parse(stored);
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+    return parsed as FavoriteItem[];
+  } catch (error) {
+    console.error('Failed to read favorites:', error);
+    return [];
+  }
+}
 
-  const toggleFavorite = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    const stored = localStorage.getItem('favorites');
-    const favs = stored ? JSON.parse(stored) : [];
-    
-    if (isFavorite) {
-      const updated = favs.filter((f: any) => f.id !== movie.id);
+export default function MovieCard({ movie, className }: MovieCardProps) {
+  const [isFavorite, setIsFavorite] = useState(() => {
+    if (typeof window === 'undefined') {
+      return false;
+    }
+    return readFavorites().some((item) => item.id === movie.id);
+  });
+  const year = movie.releaseDate.split('-')[0];
+  const linkSlug = movie.slug || movie.id;
+  const cardClassName = className || 'w-[220px] sm:w-[260px] shrink-0';
+
+  const toggleFavorite = (event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const favorites = readFavorites();
+    if (favorites.some((item) => item.id === movie.id)) {
+      const updated = favorites.filter((item) => item.id !== movie.id);
       localStorage.setItem('favorites', JSON.stringify(updated));
       setIsFavorite(false);
-    } else {
-      const updated = [...favs, {
+      return;
+    }
+
+    const updated = [
+      ...favorites,
+      {
         id: movie.id,
         slug: movie.slug,
         title: movie.title,
         poster: movie.poster,
-        mediaType: movie.mediaType || 'movie'
-      }];
-      localStorage.setItem('favorites', JSON.stringify(updated));
-      setIsFavorite(true);
-    }
+        mediaType: movie.mediaType || 'movie',
+      },
+    ];
+    localStorage.setItem('favorites', JSON.stringify(updated));
+    setIsFavorite(true);
   };
 
   return (
-    <Link href={`/movie/${linkSlug}`} className="group block">
-      <div className="relative aspect-[2/3] rounded-2xl overflow-hidden bg-zinc-800">
+    <Link href={`/movie/${linkSlug}`} className={`group block ${cardClassName}`}>
+      <div className="relative aspect-video overflow-hidden rounded-xl border border-white/10 bg-[#101922] shadow-[0_16px_30px_-24px_rgba(0,0,0,0.9)] transition-all duration-300 group-hover:border-[#00a8e1]/55 group-hover:shadow-[0_20px_34px_-18px_rgba(0,168,225,0.35)]">
         <Image
-          src={movie.poster}
+          src={movie.backdrop || movie.poster}
           alt={movie.title}
           fill
-          className="object-cover transition-transform duration-300 group-hover:scale-105"
-          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+          className="object-cover transition-transform duration-500 group-hover:scale-105"
+          sizes="(max-width: 640px) 85vw, (max-width: 1024px) 45vw, 260px"
         />
-        <button
-          onClick={toggleFavorite}
-          className="absolute top-2 right-2 p-1.5 rounded-full bg-black/50 hover:bg-black/70 transition-colors z-10"
-        >
-          <svg 
-            className={`w-4 h-4 ${isFavorite ? 'text-red-500' : 'text-white'}`} 
-            fill={isFavorite ? 'currentColor' : 'none'} 
-            stroke="currentColor" 
-            viewBox="0 0 24 24"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-          </svg>
-        </button>
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-      </div>
-      <div className="mt-3 space-y-1">
-        <h3 className="font-medium text-white truncate">{movie.title}</h3>
-        <div className="flex items-center gap-2 text-xs sm:text-sm text-zinc-400">
-          <span>{year}</span>
-          <span className="flex items-center gap-1">
-            <svg className="w-3 h-3 text-yellow-500" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-            </svg>
-            {movie.rating}
+
+        <div className="absolute inset-0 bg-gradient-to-t from-[#09121a] via-[#09121a]/30 to-transparent" />
+
+        <div className="absolute left-2 right-2 top-2 flex items-center justify-between">
+          <span className="rounded-md bg-black/55 px-2 py-1 text-[10px] font-semibold text-slate-100">
+            {movie.quality}
           </span>
-          {movie.mediaType === 'series' && movie.totalSeasons && (
-            <span className="text-purple-400">S{movie.totalSeasons}</span>
-          )}
+          <button
+            onClick={toggleFavorite}
+            className="rounded-full bg-black/55 p-1.5 text-slate-100 transition-colors hover:bg-black/75"
+          >
+            <svg
+              className={`h-4 w-4 ${isFavorite ? 'text-red-400' : 'text-slate-100'}`}
+              fill={isFavorite ? 'currentColor' : 'none'}
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+              />
+            </svg>
+          </button>
+        </div>
+
+        <div className="absolute bottom-0 left-0 right-0 p-3">
+          <h3 className="truncate text-sm font-semibold text-white sm:text-base">{movie.title}</h3>
+          <div className="mt-1 flex items-center gap-2 text-[11px] text-slate-300 sm:text-xs">
+            <span>{year}</span>
+            <span>Rating {movie.rating}</span>
+            {movie.mediaType === 'series' && movie.totalSeasons && (
+              <span>{movie.totalSeasons} Seasons</span>
+            )}
+          </div>
         </div>
       </div>
     </Link>
   );
 }
 
-export function MovieCardSkeleton() {
+interface MovieCardSkeletonProps {
+  className?: string;
+}
+
+export function MovieCardSkeleton({ className }: MovieCardSkeletonProps) {
+  const cardClassName = className || 'w-[220px] sm:w-[260px] shrink-0';
+
   return (
-    <div className="animate-pulse">
-      <div className="aspect-[2/3] rounded-2xl bg-zinc-800" />
-      <div className="mt-3 space-y-2">
-        <div className="h-5 w-3/4 bg-zinc-800 rounded" />
-        <div className="h-4 w-1/2 bg-zinc-800 rounded" />
-      </div>
+    <div className={`animate-pulse ${cardClassName}`}>
+      <div className="aspect-video rounded-xl border border-white/10 bg-[#1a2430]" />
     </div>
   );
 }
