@@ -30,12 +30,6 @@ export default function Navbar() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </div>
-            <Link
-              href="/add-movie"
-              className="px-4 py-2 text-sm font-medium text-white bg-zinc-900 dark:bg-white rounded-full hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors"
-            >
-              Add Movie
-            </Link>
           </div>
 
           <button
@@ -53,20 +47,12 @@ export default function Navbar() {
         </div>
 
         {mobileMenuOpen && (
-          <div className="md:hidden py-4 border-t border-zinc-200 dark:border-zinc-800 space-y-3">
-            <div className="mb-4">
-              <input
-                type="text"
-                placeholder="Search movies..."
-                className="w-full px-4 py-2 text-sm bg-zinc-100 dark:bg-zinc-800 border-0 rounded-full focus:outline-none focus:ring-2 focus:ring-zinc-300 dark:focus:ring-zinc-700 text-zinc-900 dark:text-zinc-100 placeholder-zinc-500"
-              />
-            </div>
-            <Link
-              href="/add-movie"
-              className="block w-full px-4 py-2 text-sm font-medium text-center text-white bg-zinc-900 dark:bg-white rounded-full hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors"
-            >
-              Add Movie
-            </Link>
+          <div className="md:hidden py-4 border-t border-zinc-200 dark:border-zinc-800">
+            <input
+              type="text"
+              placeholder="Search movies..."
+              className="w-full px-4 py-2 text-sm bg-zinc-100 dark:bg-zinc-800 border-0 rounded-full focus:outline-none focus:ring-2 focus:ring-zinc-300 dark:focus:ring-zinc-700 text-zinc-900 dark:text-zinc-100 placeholder-zinc-500"
+            />
           </div>
         )}
       </div>
