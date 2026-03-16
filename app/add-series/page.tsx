@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Source } from '@/lib/models';
+import { Source, createSlug } from '@/lib/models';
 import TmdbSearch from '@/components/TmdbSearch';
 import MoviePreview from '@/components/MoviePreview';
 import SourceInput from '@/components/SourceInput';
@@ -53,8 +53,10 @@ export default function AddSeriesPage() {
     setSaving(true);
 
     try {
+      const seriesId = Date.now().toString();
       const seriesData = {
-        id: Date.now().toString(),
+        id: seriesId,
+        slug: createSlug(title, seriesId),
         title,
         poster,
         backdrop,

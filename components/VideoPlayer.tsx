@@ -8,13 +8,49 @@ interface VideoPlayerProps {
   source: Source;
 }
 
+function canEmbedUrl(url: string): boolean {
+  try {
+    const urlObj = new URL(url);
+    const hostname = urlObj.hostname.toLowerCase();
+    const isEmbedHost = hostname.includes('embed') || 
+      hostname.includes('stream') ||
+      hostname.includes('player') ||
+      hostname.includes('video') ||
+      hostname.includes('watch') ||
+      hostname.includes('play') ||
+      hostname.includes('cdn') ||
+      hostname.includes('media') ||
+      hostname.includes('streamtape') ||
+      hostname.includes('dood') ||
+      hostname.includes('filemoon') ||
+      hostname.includes('streamwish') ||
+      hostname.includes('vidguard') ||
+      hostname.includes('voe') ||
+      hostname.includes('vtube') ||
+      hostname.includes('yavu') ||
+      hostname.includes('html5') ||
+      url.includes('/embed/') ||
+      url.includes('/player/');
+    return isEmbedHost;
+  } catch {
+    return false;
+  }
+}
+
 export default function VideoPlayer({ source }: VideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<Hls | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
+  const isEmbeddable = source.type === 'embed' || canEmbedUrl(source.url);
+
   useEffect(() => {
+    if (isEmbeddable) {
+      setLoading(false);
+      return;
+    }
+
     const video = videoRef.current;
     if (!video) return;
 
@@ -64,12 +100,17 @@ export default function VideoPlayer({ source }: VideoPlayerProps) {
         hlsRef.current.destroy();
       }
     };
-  }, [source]);
+  }, [source, isEmbeddable]);
 
-  if (source.type === 'embed') {
+  if (isEmbeddable) {
     return (
-      <div className="flex items-center justify-center h-96 bg-zinc-900 rounded-xl">
-        <p className="text-zinc-400">Embed sources cannot be played inline</p>
+      <div className="w-full aspect-video rounded-xl overflow-hidden bg-black">
+        <iframe
+          src={source.url}
+          className="w-full h-full"
+          allowFullScreen
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        />
       </div>
     );
   }

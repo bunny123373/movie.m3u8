@@ -1,9 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createSeries, getAllSeries, getSeriesById, updateSeries, deleteSeries } from '@/lib/models';
+import { createSeries, getAllSeries, getSeriesById, getSeriesBySlug, updateSeries, deleteSeries } from '@/lib/models';
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const id = searchParams.get('id');
+  const slug = searchParams.get('slug');
+
+  if (slug) {
+    const series = await getSeriesBySlug(slug);
+    if (!series) {
+      return NextResponse.json({ error: 'Series not found' }, { status: 404 });
+    }
+    return NextResponse.json(series);
+  }
 
   if (id) {
     const series = await getSeriesById(id);

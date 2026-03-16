@@ -77,7 +77,7 @@ export default function WatchPage() {
       <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
         <div className="text-center">
           <p className="text-zinc-400 text-lg">No sources available</p>
-          <Link href={`/movie/${movie.id}`} className="mt-4 inline-block text-blue-400 hover:text-blue-300">
+          <Link href={`/movie/${movie.slug || movie.id}`} className="mt-4 inline-block text-blue-400 hover:text-blue-300">
             Back to details
           </Link>
         </div>
@@ -90,7 +90,7 @@ export default function WatchPage() {
       <div className="relative">
         <div className="flex items-center gap-4 p-4 bg-zinc-900/50 backdrop-blur-sm sticky top-0 z-10">
           <Link
-            href={`/movie/${movie.id}`}
+            href={`/movie/${movie.slug || movie.id}`}
             className="flex items-center gap-2 px-3 py-2 text-sm text-zinc-300 hover:text-white transition-colors"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

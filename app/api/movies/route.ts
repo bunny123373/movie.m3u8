@@ -1,9 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createMovie, getAllMovies, getMovieById, deleteMovie, updateMovie } from '@/lib/models';
+import { createMovie, getAllMovies, getMovieById, getMovieBySlug, deleteMovie, updateMovie } from '@/lib/models';
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const id = searchParams.get('id');
+  const slug = searchParams.get('slug');
+
+  if (slug) {
+    const movie = await getMovieBySlug(slug);
+    if (!movie) {
+      return NextResponse.json({ error: 'Movie not found' }, { status: 404 });
+    }
+    return NextResponse.json(movie);
+  }
 
   if (id) {
     const movie = await getMovieById(id);

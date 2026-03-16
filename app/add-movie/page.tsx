@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Source } from '@/lib/models';
+import { Source, createSlug } from '@/lib/models';
 import TmdbSearch from '@/components/TmdbSearch';
 import MoviePreview from '@/components/MoviePreview';
 import SourceInput from '@/components/SourceInput';
@@ -67,8 +67,10 @@ export default function AddMoviePage() {
     setSaving(true);
 
     try {
+      const movieId = Date.now().toString();
       const movieData = {
-        id: Date.now().toString(),
+        id: movieId,
+        slug: createSlug(title, movieId),
         title,
         poster,
         backdrop,

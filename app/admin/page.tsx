@@ -15,6 +15,7 @@ interface Source {
 
 interface MediaItem {
   id: string;
+  slug?: string;
   title: string;
   poster: string;
   backdrop: string;
@@ -338,7 +339,7 @@ export default function AdminDashboard() {
                         Edit
                       </button>
                       <Link
-                        href={`/movie/${item.id}`}
+                        href={`/movie/${item.slug || item.id}`}
                         className="px-3 py-1.5 text-xs bg-zinc-700 hover:bg-zinc-600 rounded transition-colors"
                       >
                         View

@@ -12,9 +12,20 @@ export interface Source {
   episode?: number;
 }
 
+export function createSlug(title: string, id: string): string {
+  const slug = title
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .trim();
+  return `${slug}-${id}`;
+}
+
 export interface Movie {
   _id?: ObjectId;
   id: string;
+  slug?: string;
   title: string;
   poster: string;
   backdrop: string;
@@ -36,6 +47,7 @@ export interface Movie {
 export interface Series {
   _id?: ObjectId;
   id: string;
+  slug?: string;
   title: string;
   poster: string;
   backdrop: string;
@@ -56,6 +68,7 @@ export interface Series {
 
 const movieSchema = {
   id: '',
+  slug: '',
   title: '',
   poster: '',
   backdrop: '',
@@ -80,6 +93,12 @@ export async function getAllMovies(): Promise<Movie[]> {
 export async function getMovieById(id: string): Promise<Movie | null> {
   const db = await getDatabase();
   const movie = await db.collection<Movie>('movies').findOne({ id });
+  return movie;
+}
+
+export async function getMovieBySlug(slug: string): Promise<Movie | null> {
+  const db = await getDatabase();
+  const movie = await db.collection<Movie>('movies').findOne({ slug });
   return movie;
 }
 
@@ -258,6 +277,12 @@ export async function getAllSeries(): Promise<Series[]> {
 export async function getSeriesById(id: string): Promise<Series | null> {
   const db = await getDatabase();
   const series = await db.collection<Series>('series').findOne({ id });
+  return series;
+}
+
+export async function getSeriesBySlug(slug: string): Promise<Series | null> {
+  const db = await getDatabase();
+  const series = await db.collection<Series>('series').findOne({ slug });
   return series;
 }
 

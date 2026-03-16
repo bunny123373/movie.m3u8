@@ -7,6 +7,7 @@ import MovieCard from '@/components/MovieCard';
 
 interface Movie {
   id: string;
+  slug?: string;
   title: string;
   poster: string;
   backdrop: string;
@@ -25,6 +26,7 @@ interface Movie {
 
 interface Series {
   id: string;
+  slug?: string;
   title: string;
   poster: string;
   backdrop: string;
@@ -156,7 +158,7 @@ export default function HomePage() {
                 </Link>
               )}
               <Link
-                href={`/movie/${featured.id}`}
+                href={`/movie/${featured.slug || featured.id}`}
                 className="flex items-center gap-2 px-4 py-3 bg-zinc-500/50 rounded-lg hover:bg-zinc-500/70 transition-colors"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

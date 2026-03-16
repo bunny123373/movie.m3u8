@@ -22,12 +22,12 @@ export default function MovieDetailClient() {
   useEffect(() => {
     async function fetchMovie() {
       try {
-        const res = await fetch(`/api/movies?id=${params.id}`);
+        const res = await fetch(`/api/movies?slug=${params.slug}`);
         if (res.ok) {
           const data = await res.json();
           setMovie({ ...data, mediaType: 'movie' as const });
         } else {
-          const seriesRes = await fetch(`/api/series?id=${params.id}`);
+          const seriesRes = await fetch(`/api/series?slug=${params.slug}`);
           if (seriesRes.ok) {
             const seriesData = await seriesRes.json();
             setMovie({ ...seriesData, mediaType: 'series' as const });
@@ -39,10 +39,10 @@ export default function MovieDetailClient() {
         setLoading(false);
       }
     }
-    if (params.id) {
+    if (params.slug) {
       fetchMovie();
     }
-  }, [params.id]);
+  }, [params.slug]);
 
   if (loading) {
     return (

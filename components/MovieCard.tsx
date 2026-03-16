@@ -15,6 +15,7 @@ interface Source {
 interface MovieCardProps {
   movie: {
     id: string;
+    slug?: string;
     title: string;
     poster: string;
     backdrop: string;
@@ -37,9 +38,10 @@ interface MovieCardProps {
 export default function MovieCard({ movie }: MovieCardProps) {
   const year = movie.releaseDate.split('-')[0];
   const activeSources = movie.sources.filter(s => s.active).length;
+  const linkSlug = movie.slug || movie.id;
 
   return (
-    <Link href={`/movie/${movie.id}`} className="group block">
+    <Link href={`/movie/${linkSlug}`} className="group block">
       <div className="relative aspect-[2/3] rounded-2xl overflow-hidden bg-zinc-200 dark:bg-zinc-800">
         <Image
           src={movie.poster}
