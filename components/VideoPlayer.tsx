@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { Source } from '@/lib/models';
 
 interface VideoPlayerProps {
@@ -10,56 +10,52 @@ interface VideoPlayerProps {
 export default function VideoPlayer({ source }: VideoPlayerProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-  const videoRef = useRef<HTMLVideoElement>(null);
 
-  if (source.type !== 'mp4' && source.type !== 'm3u8') {
+  if (source.type === 'embed') {
     return (
       <div className="flex items-center justify-center h-96 bg-zinc-900 rounded-xl">
-        <p className="text-zinc-400">This source type cannot be played inline</p>
+        <p className="text-zinc-400">Embed sources cannot be played inline</p>
       </div>
     );
   }
 
   return (
-    <div className="w-full aspect-video rounded-xl overflow-hidden bg-black">
-      {source.type === 'mp4' ? (
-        <video
-          ref={videoRef}
-          src={source.url}
-          controls
-          autoPlay
-          className="w-full h-full"
-          onLoadedData={() => setLoading(false)}
-          onError={() => {
-            setError(true);
-            setLoading(false);
-          }}
-        />
-      ) : (
-        <div className="flex items-center justify-center h-full">
-          <p className="text-zinc-400">
-            HLS streams require a compatible player. 
-            <a 
-              href={source.url} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="ml-2 text-blue-400 hover:underline"
-            >
-              Open in new tab
-            </a>
-          </p>
-        </div>
-      )}
+    <div className="w-full aspect-video rounded-xl overflow-hidden bg-black relative">
+      <video
+        src={source.url}
+        controls
+        autoPlay
+        className="w-full h-full"
+        onLoadedData={() => setLoading(false)}
+        onError={() => {
+          setError(true);
+          setLoading(false);
+        }}
+        onPlay={() => setLoading(false)}
+      />
       
       {loading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/50">
-          <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin" />
+        <div className="absolute inset-0 flex items-center justify-center bg-black/80">
+          <div className="flex flex-col items-center gap-3">
+            <div className="w-10 h-10 border-3 border-white border-t-transparent rounded-full animate-spin" />
+            <p className="text-zinc-400 text-sm">Loading...</p>
+          </div>
         </div>
       )}
       
       {error && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/50">
-          <p className="text-red-400">Failed to load video</p>
+        <div className="absolute inset-0 flex items-center justify-center bg-black/80">
+          <div className="text-center">
+            <p className="text-red-400 mb-3">Failed to load video</p>
+            <a 
+              href={source.url} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-blue-400 hover:underline text-sm"
+            >
+              Open in new tab
+            </a>
+          </div>
         </div>
       )}
     </div>
