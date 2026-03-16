@@ -25,8 +25,11 @@ interface MovieCardProps {
     audioLanguages: string[];
     subtitleLanguages: string[];
     quality: string;
-    runtime: string;
-    fileSize: string;
+    runtime?: string;
+    fileSize?: string;
+    mediaType?: 'movie' | 'series';
+    totalSeasons?: number;
+    totalEpisodes?: number;
     sources: Source[];
   };
 }

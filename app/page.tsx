@@ -19,69 +19,105 @@ interface Movie {
   quality: string;
   runtime: string;
   fileSize: string;
+  mediaType: 'movie';
   sources: { id: string; name: string; url: string; type: 'mp4' | 'm3u8' | 'embed'; priority: number; active: boolean }[];
 }
 
+interface Series {
+  id: string;
+  title: string;
+  poster: string;
+  backdrop: string;
+  rating: number;
+  releaseDate: string;
+  overview: string;
+  genres: string[];
+  audioLanguages: string[];
+  subtitleLanguages: string[];
+  quality: string;
+  totalSeasons: number;
+  totalEpisodes: number;
+  mediaType: 'series';
+  sources: { id: string; name: string; url: string; type: 'mp4' | 'm3u8' | 'embed'; priority: number; active: boolean }[];
+}
+
+type MediaItem = Movie | Series;
+
 export default function HomePage() {
-  const [featured, setFeatured] = useState<Movie | null>(null);
-  const [movies, setMovies] = useState<Movie[]>([]);
+  const [featured, setFeatured] = useState<MediaItem | null>(null);
+  const [movies, setMovies] = useState<MediaItem[]>([]);
+  const [series, setSeries] = useState<MediaItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
 
   useEffect(() => {
-    async function fetchMovies() {
+    async function fetchMedia() {
       try {
-        const res = await fetch('/api/movies');
-        if (res.ok) {
-          const data = await res.json();
-          if (Array.isArray(data) && data.length > 0) {
-            setFeatured(data[0]);
-            setMovies(data);
-          }
+        const [moviesRes, seriesRes] = await Promise.all([
+          fetch('/api/movies'),
+          fetch('/api/series'),
+        ]);
+        
+        const moviesData = moviesRes.ok ? await moviesRes.json() : [];
+        const seriesData = seriesRes.ok ? await seriesRes.json() : [];
+        
+        const allMedia: MediaItem[] = [
+          ...moviesData.map((m: any) => ({ ...m, mediaType: 'movie' as const })),
+          ...seriesData.map((s: any) => ({ ...s, mediaType: 'series' as const })),
+        ];
+        
+        if (allMedia.length > 0) {
+          setFeatured(allMedia[0]);
+          setMovies(moviesData);
+          setSeries(seriesData);
         }
       } catch (err) {
-        console.warn('Failed to fetch movies:', err);
-        setError(true);
+        console.warn('Failed to fetch media:', err);
       } finally {
         setLoading(false);
       }
     }
-    fetchMovies();
+    fetchMedia();
   }, []);
 
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="animate-pulse space-y-4">
-          <div className="h-96 bg-zinc-200 dark:bg-zinc-800 rounded-2xl" />
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-            {[...Array(6)].map((_, i) => (
-              <div key={i}>
-                <div className="aspect-[2/3] bg-zinc-200 dark:bg-zinc-800 rounded-2xl" />
-                <div className="mt-3 h-5 bg-zinc-200 dark:bg-zinc-800 rounded" />
-              </div>
-            ))}
+      <div className="min-h-screen bg-zinc-950">
+        <div className="animate-pulse">
+          <div className="h-[85vh] bg-zinc-800" />
+          <div className="max-w-7xl mx-auto px-4 py-8">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+              {[...Array(12)].map((_, i) => (
+                <div key={i}>
+                  <div className="aspect-[2/3] bg-zinc-800 rounded-lg" />
+                  <div className="mt-2 h-4 bg-zinc-800 rounded w-3/4" />
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
     );
   }
 
-  if (error || !featured) {
+  if (!featured) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <p className="text-center text-zinc-500 dark:text-zinc-400">
-          Unable to load movies. Make sure MongoDB is running.
-        </p>
+      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-zinc-400 text-lg">No content available</p>
+          <Link href="/admin" className="mt-4 inline-block text-zinc-500 hover:text-white transition-colors">
+            Go to Admin
+          </Link>
+        </div>
       </div>
     );
   }
 
   const year = featured.releaseDate.split('-')[0];
+  const isSeries = featured.mediaType === 'series';
 
   return (
-    <main>
-      <section className="relative h-[70vh] min-h-[500px]">
+    <main className="min-h-screen bg-zinc-950 text-white">
+      <div className="relative w-full min-h-[85vh]">
         <div className="absolute inset-0">
           <Image
             src={featured.backdrop}
@@ -90,77 +126,80 @@ export default function HomePage() {
             priority
             className="object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-zinc-950 via-zinc-950/80 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-transparent to-zinc-950/60" />
         </div>
 
-        <div className="relative h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-end pb-16">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-[30vh] pb-16">
           <div className="max-w-2xl">
-            <div className="flex flex-wrap items-center gap-3 mb-4">
-              <span className="flex items-center gap-1 px-3 py-1 text-sm font-medium text-white bg-yellow-500/90 rounded-full">
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+            <div className="flex items-center gap-3 mb-4">
+              <span className="text-green-400 font-medium">NETFLIX</span>
+              <span className="text-zinc-400 text-sm">{year}</span>
+              <span className="px-2 py-0.5 text-xs border border-zinc-600 rounded">{featured.quality}</span>
+              {isSeries && (
+                <span className="px-2 py-0.5 text-xs bg-purple-600 rounded">Series</span>
+              )}
+            </div>
+
+            <h1 className="text-4xl sm:text-6xl font-bold mb-4">{featured.title}</h1>
+
+            <div className="flex items-center gap-4 mb-6">
+              <Link
+                href={`/movie/${featured.id}`}
+                className="flex items-center gap-2 px-8 py-3 bg-white text-zinc-900 rounded-lg font-medium hover:bg-zinc-200 transition-colors"
+              >
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M8 5v14l11-7z" />
                 </svg>
-                {featured.rating}
-              </span>
-              <span className="px-3 py-1 text-sm font-medium text-white bg-white/20 rounded-full backdrop-blur-sm">
-                {year}
-              </span>
-              <span className="px-3 py-1 text-sm font-medium text-white bg-white/20 rounded-full backdrop-blur-sm">
-                {featured.quality}
-              </span>
-              <span className="px-3 py-1 text-sm font-medium text-white bg-white/20 rounded-full backdrop-blur-sm">
-                {featured.runtime}
-              </span>
-            </div>
-
-            <h1 className="text-4xl sm:text-5xl font-bold text-white mb-4">{featured.title}</h1>
-            
-            <div className="mb-4">
-              <p className="text-sm font-medium text-zinc-300 mb-2">Available Audio</p>
-              <div className="flex flex-wrap gap-2">
-                {featured.audioLanguages.map((lang) => (
-                  <span key={lang} className="px-3 py-1 text-xs font-medium text-white bg-white/10 rounded-full">
-                    {lang}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            <div className="flex flex-wrap gap-2 mb-4">
-              <span className="px-2 py-1 text-xs font-medium text-green-400 bg-green-900/30 rounded">
-                Subtitles Available
-              </span>
-            </div>
-
-            <p className="text-zinc-300 mb-6 line-clamp-2">{featured.overview}</p>
-
-            <div className="flex flex-wrap gap-3">
-              <Link
-                href={`/movie/${featured.id}`}
-                className="px-6 py-3 text-sm font-medium text-zinc-900 bg-white rounded-full hover:bg-zinc-100 transition-colors"
-              >
-                Watch Now
+                Play
               </Link>
               <Link
                 href={`/movie/${featured.id}`}
-                className="px-6 py-3 text-sm font-medium text-white bg-white/20 backdrop-blur-sm rounded-full hover:bg-white/30 transition-colors"
+                className="flex items-center gap-2 px-4 py-3 bg-zinc-500/50 rounded-lg hover:bg-zinc-500/70 transition-colors"
               >
-                Details
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                More Info
               </Link>
+            </div>
+
+            <p className="text-lg text-zinc-300 mb-6 line-clamp-3">{featured.overview}</p>
+
+            <div className="flex flex-wrap gap-2">
+              {featured.genres.map((genre) => (
+                <span key={genre} className="px-3 py-1 text-sm bg-zinc-800/50 rounded-full">
+                  {genre}
+                </span>
+              ))}
             </div>
           </div>
         </div>
-      </section>
+      </div>
 
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <h2 className="text-2xl font-semibold text-zinc-900 dark:text-white mb-6">Recent Movies</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-6">
-          {movies.map((movie) => (
-            <MovieCard key={movie.id} movie={movie} />
-          ))}
-        </div>
-      </section>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 -mt-20 relative z-20">
+        {movies.length > 0 && (
+          <section className="mb-12">
+            <h2 className="text-2xl font-bold mb-6">Movies</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+              {movies.map((movie) => (
+                <MovieCard key={movie.id} movie={movie as any} />
+              ))}
+            </div>
+          </section>
+        )}
+
+        {series.length > 0 && (
+          <section className="mb-12">
+            <h2 className="text-2xl font-bold mb-6">TV Series</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+              {series.map((s) => (
+                <MovieCard key={s.id} movie={s as any} />
+              ))}
+            </div>
+          </section>
+        )}
+      </div>
     </main>
   );
 }

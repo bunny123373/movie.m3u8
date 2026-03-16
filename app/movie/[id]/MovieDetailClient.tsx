@@ -5,7 +5,6 @@ import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Movie, Series } from '@/lib/models';
-import SourceCard from '@/components/SourceCard';
 import VideoPlayer from '@/components/VideoPlayer';
 
 interface MediaItem extends Movie {
@@ -47,10 +46,6 @@ export default function MovieDetailClient() {
     }
   }, [params.id]);
 
-  const handleOpenSource = (source: any) => {
-    setPlayingSource(source.id);
-  };
-
   const handleWatchHere = (source: any) => {
     if (source.type === 'embed') {
       window.open(source.url, '_blank');
@@ -61,13 +56,13 @@ export default function MovieDetailClient() {
 
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="animate-pulse space-y-4">
-          <div className="h-96 bg-zinc-200 dark:bg-zinc-800 rounded-2xl" />
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="h-24 bg-zinc-200 dark:bg-zinc-800 rounded-xl" />
-            ))}
+      <div className="min-h-screen bg-zinc-950">
+        <div className="animate-pulse">
+          <div className="h-[85vh] bg-zinc-800" />
+          <div className="max-w-7xl mx-auto px-4 py-8 space-y-6">
+            <div className="h-12 w-1/3 bg-zinc-800 rounded" />
+            <div className="h-6 w-2/3 bg-zinc-800 rounded" />
+            <div className="h-6 w-1/2 bg-zinc-800 rounded" />
           </div>
         </div>
       </div>
@@ -76,11 +71,13 @@ export default function MovieDetailClient() {
 
   if (!movie) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <p className="text-center text-zinc-500 dark:text-zinc-400">Movie not found</p>
-        <Link href="/" className="block text-center mt-4 text-zinc-900 dark:text-white hover:underline">
-          Go back home
-        </Link>
+      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-zinc-400 text-lg">Movie not found</p>
+          <Link href="/" className="mt-4 inline-block text-zinc-500 hover:text-white transition-colors">
+            Go back home
+          </Link>
+        </div>
       </div>
     );
   }
@@ -93,169 +90,197 @@ export default function MovieDetailClient() {
     : activeSources[0];
 
   return (
-    <main>
+    <main className="min-h-screen bg-zinc-950 text-white">
       {playingSource && currentSource && currentSource.type !== 'embed' && (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <button
             onClick={() => setPlayingSource(null)}
-            className="mb-4 px-4 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-800 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700"
+            className="mb-4 flex items-center gap-2 px-4 py-2 text-sm font-medium text-zinc-300 bg-zinc-800/50 rounded-lg hover:bg-zinc-800 transition-colors"
           >
-            ← Back to details
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            Back
           </button>
           <VideoPlayer source={currentSource} />
-          <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
-            Watching: {movie.title} - {currentSource.name}
-          </p>
+          <p className="mt-4 text-lg font-medium">{movie.title}</p>
+          <p className="text-zinc-400">{currentSource.name}</p>
         </div>
       )}
 
-      <section className="relative h-[50vh] min-h-[400px]">
-        <div className="absolute inset-0">
-          <Image
-            src={movie.backdrop}
-            alt={movie.title}
-            fill
-            priority
-            className="object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-black/40 to-transparent" />
-        </div>
-
-        <div className="relative h-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-end pb-12">
-          <div className="flex flex-col md:flex-row gap-8">
-            <div className="w-40 h-60 sm:w-48 sm:h-72 rounded-xl overflow-hidden bg-zinc-800 shrink-0">
+      {!playingSource && (
+        <>
+          <div className="relative w-full min-h-[85vh]">
+            <div className="absolute inset-0">
               <Image
-                src={movie.poster}
+                src={movie.backdrop}
                 alt={movie.title}
-                width={192}
-                height={288}
-                className="w-full h-full object-cover"
+                fill
+                priority
+                className="object-cover"
               />
+              <div className="absolute inset-0 bg-gradient-to-r from-zinc-950 via-zinc-950/80 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-transparent to-zinc-950/60" />
             </div>
-            <div className="max-w-xl">
-              <h1 className="text-3xl sm:text-4xl font-bold text-white mb-4">{movie.title}</h1>
-              
-              <div className="flex flex-wrap items-center gap-3 mb-4">
-                <span className="flex items-center gap-1 px-3 py-1 text-sm font-medium text-white bg-yellow-500/90 rounded-full">
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                  </svg>
-                  {movie.rating}
-                </span>
-                <span className="px-3 py-1 text-sm font-medium text-white bg-white/20 rounded-full backdrop-blur-sm">
-                  {year}
-                </span>
-                <span className={`px-3 py-1 text-sm font-medium rounded-full backdrop-blur-sm ${
-                  isSeries ? 'bg-purple-500/90' : 'bg-blue-500/90'
-                } text-white`}>
-                  {isSeries ? 'Series' : 'Movie'}
-                </span>
-              </div>
 
-              <div className="flex flex-wrap gap-2 mb-4">
-                {movie.genres.map((genre: any) => (
-                  <span key={genre} className="px-3 py-1 text-xs font-medium text-zinc-300 bg-white/10 rounded-full">
-                    {genre}
-                  </span>
-                ))}
-              </div>
+            <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-[30vh] pb-16">
+              <div className="max-w-2xl">
+                <div className="flex items-center gap-3 mb-4">
+                  <span className="text-green-400 font-medium">NETFLIX</span>
+                  <span className="text-zinc-400 text-sm">{year}</span>
+                  <span className="px-2 py-0.5 text-xs border border-zinc-600 rounded">{movie.quality}</span>
+                  {isSeries && (
+                    <span className="px-2 py-0.5 text-xs bg-purple-600 rounded">Series</span>
+                  )}
+                </div>
 
-              <p className="text-zinc-300 mb-6 line-clamp-2">{movie.overview}</p>
-            </div>
-          </div>
-        </div>
-      </section>
+                <h1 className="text-4xl sm:text-6xl font-bold mb-4">{movie.title}</h1>
 
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
-          <div className="p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl">
-            <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-2">Audio Languages</p>
-            <div className="flex flex-wrap gap-2">
-              {movie.audioLanguages.map((lang: any) => (
-                <span key={lang} className="px-2 py-1 text-xs font-medium text-zinc-700 dark:text-zinc-300 bg-zinc-200 dark:bg-zinc-700 rounded">
-                  {lang}
-                </span>
-              ))}
-            </div>
-          </div>
-          <div className="p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl">
-            <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-2">Subtitle Languages</p>
-            <div className="flex flex-wrap gap-2">
-              {movie.subtitleLanguages.map((lang: any) => (
-                <span key={lang} className="px-2 py-1 text-xs font-medium text-zinc-700 dark:text-zinc-300 bg-zinc-200 dark:bg-zinc-700 rounded">
-                  {lang}
-                </span>
-              ))}
-            </div>
-          </div>
-          <div className="p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl">
-            <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-2">Quality</p>
-            <p className="font-semibold text-zinc-900 dark:text-white">{movie.quality}</p>
-          </div>
-          {isSeries ? (
-            <>
-              <div className="p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl">
-                <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-2">Seasons</p>
-                <p className="font-semibold text-zinc-900 dark:text-white">{(movie as any).totalSeasons}</p>
-              </div>
-              <div className="p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl">
-                <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-2">Episodes</p>
-                <p className="font-semibold text-zinc-900 dark:text-white">{(movie as any).totalEpisodes}</p>
-              </div>
-            </>
-          ) : (
-            <>
-              <div className="p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl">
-                <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-2">Runtime</p>
-                <p className="font-semibold text-zinc-900 dark:text-white">{movie.runtime}</p>
-              </div>
-              <div className="p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl">
-                <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-2">File Size</p>
-                <p className="font-semibold text-zinc-900 dark:text-white">{movie.fileSize}</p>
-              </div>
-            </>
-          )}
-        </div>
+                <div className="flex items-center gap-4 mb-6">
+                  <button
+                    onClick={() => activeSources[0] && handleWatchHere(activeSources[0])}
+                    className="flex items-center gap-2 px-8 py-3 bg-white text-zinc-900 rounded-lg font-medium hover:bg-zinc-200 transition-colors"
+                  >
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M8 5v14l11-7z" />
+                    </svg>
+                    Play
+                  </button>
+                  <button
+                    onClick={() => {
+                      const infoEl = document.getElementById('info-section');
+                      infoEl?.scrollIntoView({ behavior: 'smooth' });
+                    }}
+                    className="flex items-center gap-2 px-4 py-3 bg-zinc-500/50 rounded-lg hover:bg-zinc-500/70 transition-colors"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    More Info
+                  </button>
+                </div>
 
-        <div>
-          <h2 className="text-xl font-semibold text-zinc-900 dark:text-white mb-4">Watch</h2>
-          <div className="space-y-3">
-            {movie.sources.map((source: any) => (
-              <div key={source.id} className="flex items-center justify-between p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl">
-                <div className="flex items-center gap-4">
+                <p className="text-lg text-zinc-300 mb-6 line-clamp-3">{movie.overview}</p>
+
+                <div className="flex flex-wrap gap-2 mb-6">
+                  {movie.genres.map((genre: any) => (
+                    <span key={genre} className="px-3 py-1 text-sm bg-zinc-800/50 rounded-full">
+                      {genre}
+                    </span>
+                  ))}
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
-                    <p className="font-medium text-zinc-900 dark:text-white">{source.name}</p>
-                    <span className={`inline-block mt-1 px-2 py-0.5 text-xs font-medium rounded ${
-                      source.type === 'm3u8' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
-                      source.type === 'mp4' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
-                      'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'
+                    <span className="text-zinc-500">Audio:</span>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {movie.audioLanguages.slice(0, 3).map((lang: any) => (
+                        <span key={lang} className="text-zinc-300">{lang}</span>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <span className="text-zinc-500">Subtitles:</span>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {movie.subtitleLanguages.slice(0, 3).map((lang: any) => (
+                        <span key={lang} className="text-zinc-300">{lang}</span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="info-section" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-12">
+              <div className="bg-zinc-900 p-4 rounded-lg">
+                <p className="text-zinc-500 text-sm mb-1">Rating</p>
+                <p className="text-xl font-bold text-yellow-400">★ {movie.rating}</p>
+              </div>
+              <div className="bg-zinc-900 p-4 rounded-lg">
+                <p className="text-zinc-500 text-sm mb-1">{isSeries ? 'Seasons' : 'Runtime'}</p>
+                <p className="text-xl font-bold">{isSeries ? (movie as any).totalSeasons : movie.runtime}</p>
+              </div>
+              <div className="bg-zinc-900 p-4 rounded-lg">
+                <p className="text-zinc-500 text-sm mb-1">Quality</p>
+                <p className="text-xl font-bold">{movie.quality}</p>
+              </div>
+              {isSeries && (
+                <div className="bg-zinc-900 p-4 rounded-lg">
+                  <p className="text-zinc-500 text-sm mb-1">Episodes</p>
+                  <p className="text-xl font-bold">{(movie as any).totalEpisodes}</p>
+                </div>
+              )}
+              {!isSeries && (
+                <div className="bg-zinc-900 p-4 rounded-lg">
+                  <p className="text-zinc-500 text-sm mb-1">File Size</p>
+                  <p className="text-xl font-bold">{movie.fileSize}</p>
+                </div>
+              )}
+              <div className="bg-zinc-900 p-4 rounded-lg">
+                <p className="text-zinc-500 text-sm mb-1">Sources</p>
+                <p className="text-xl font-bold">{movie.sources.length}</p>
+              </div>
+            </div>
+
+            <h2 className="text-2xl font-bold mb-6">Watch Options</h2>
+            <div className="grid gap-3">
+              {movie.sources.map((source: any) => (
+                <div 
+                  key={source.id} 
+                  className="flex items-center justify-between p-4 bg-zinc-900 rounded-lg hover:bg-zinc-800 transition-colors"
+                >
+                  <div className="flex items-center gap-4">
+                    <span className={`px-2 py-1 text-xs font-medium rounded ${
+                      source.type === 'm3u8' ? 'bg-blue-600' :
+                      source.type === 'mp4' ? 'bg-green-600' : 'bg-purple-600'
                     }`}>
                       {source.type.toUpperCase()}
                     </span>
+                    <span className="font-medium">{source.name}</span>
+                  </div>
+                  <div className="flex gap-2">
+                    {source.type !== 'embed' && (
+                      <button
+                        onClick={() => handleWatchHere(source)}
+                        className="flex items-center gap-2 px-4 py-2 bg-white text-zinc-900 rounded font-medium hover:bg-zinc-200 transition-colors"
+                      >
+                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M8 5v14l11-7z" />
+                        </svg>
+                        Play
+                      </button>
+                    )}
+                    <button
+                      onClick={() => window.open(source.url, '_blank')}
+                      className="px-4 py-2 bg-zinc-700 rounded font-medium hover:bg-zinc-600 transition-colors"
+                    >
+                      Open
+                    </button>
                   </div>
                 </div>
-                <div className="flex gap-2">
-                  {source.type !== 'embed' && (
-                    <button
-                      onClick={() => handleWatchHere(source)}
-                      className="px-4 py-2 text-sm font-medium text-white bg-zinc-900 dark:bg-white rounded-lg hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors"
-                    >
-                      Play Here
-                    </button>
-                  )}
-                  <button
-                    onClick={() => handleOpenSource(source)}
-                    className="px-4 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-800 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
-                  >
-                    Open
-                  </button>
+              ))}
+            </div>
+
+            <div className="mt-12 grid md:grid-cols-2 gap-8">
+              <div>
+                <h3 className="text-lg font-semibold mb-4">About</h3>
+                <p className="text-zinc-400">{movie.overview || 'No description available.'}</p>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold mb-4">Details</h3>
+                <div className="space-y-2 text-zinc-400">
+                  <p><span className="text-zinc-500">Release:</span> {movie.releaseDate}</p>
+                  <p><span className="text-zinc-500">Genres:</span> {movie.genres.join(', ')}</p>
+                  <p><span className="text-zinc-500">Audio:</span> {movie.audioLanguages.join(', ')}</p>
+                  <p><span className="text-zinc-500">Subtitles:</span> {movie.subtitleLanguages.join(', ')}</p>
                 </div>
               </div>
-            ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </>
+      )}
     </main>
   );
 }
