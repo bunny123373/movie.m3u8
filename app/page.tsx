@@ -1,17 +1,78 @@
+'use client';
+
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { getAllMovies, getFeaturedMovie, seedMovies } from '@/lib/models';
 import MovieCard from '@/components/MovieCard';
 
-export default async function HomePage() {
-  await seedMovies();
-  const featured = await getFeaturedMovie();
-  const recentMovies = await getAllMovies();
+interface Movie {
+  id: string;
+  title: string;
+  poster: string;
+  backdrop: string;
+  rating: number;
+  releaseDate: string;
+  overview: string;
+  genres: string[];
+  audioLanguages: string[];
+  subtitleLanguages: string[];
+  quality: string;
+  runtime: string;
+  fileSize: string;
+  sources: { id: string; name: string; url: string; type: 'mp4' | 'm3u8' | 'embed'; priority: number; active: boolean }[];
+}
 
-  if (!featured) {
+export default function HomePage() {
+  const [featured, setFeatured] = useState<Movie | null>(null);
+  const [movies, setMovies] = useState<Movie[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    async function fetchMovies() {
+      try {
+        const res = await fetch('/api/movies');
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data) && data.length > 0) {
+            setFeatured(data[0]);
+            setMovies(data);
+          }
+        }
+      } catch (err) {
+        console.warn('Failed to fetch movies:', err);
+        setError(true);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchMovies();
+  }, []);
+
+  if (loading) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <p className="text-center text-zinc-500 dark:text-zinc-400">No movies found</p>
+        <div className="animate-pulse space-y-4">
+          <div className="h-96 bg-zinc-200 dark:bg-zinc-800 rounded-2xl" />
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+            {[...Array(6)].map((_, i) => (
+              <div key={i}>
+                <div className="aspect-[2/3] bg-zinc-200 dark:bg-zinc-800 rounded-2xl" />
+                <div className="mt-3 h-5 bg-zinc-200 dark:bg-zinc-800 rounded" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !featured) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <p className="text-center text-zinc-500 dark:text-zinc-400">
+          Unable to load movies. Make sure MongoDB is running.
+        </p>
       </div>
     );
   }
@@ -95,7 +156,7 @@ export default async function HomePage() {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <h2 className="text-2xl font-semibold text-zinc-900 dark:text-white mb-6">Recent Movies</h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-6">
-          {recentMovies.map((movie) => (
+          {movies.map((movie) => (
             <MovieCard key={movie.id} movie={movie} />
           ))}
         </div>

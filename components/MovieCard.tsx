@@ -2,10 +2,33 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { Movie } from '@/lib/models';
+
+interface Source {
+  id: string;
+  name: string;
+  url: string;
+  type: 'mp4' | 'm3u8' | 'embed';
+  priority: number;
+  active: boolean;
+}
 
 interface MovieCardProps {
-  movie: Movie;
+  movie: {
+    id: string;
+    title: string;
+    poster: string;
+    backdrop: string;
+    rating: number;
+    releaseDate: string;
+    overview: string;
+    genres: string[];
+    audioLanguages: string[];
+    subtitleLanguages: string[];
+    quality: string;
+    runtime: string;
+    fileSize: string;
+    sources: Source[];
+  };
 }
 
 export default function MovieCard({ movie }: MovieCardProps) {
