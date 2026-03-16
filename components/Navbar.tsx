@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useState } from 'react';
 import GlobalSearch from './GlobalSearch';
 import FavoritesButton from './FavoritesButton';
@@ -13,10 +14,14 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
         <div className="flex items-center justify-between h-14 sm:h-16">
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-red-600 rounded-lg flex items-center justify-center">
-              <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M4 4h16v2H4V4zm0 4h16v2H4V8zm0 4h16v2H4v-2zm0 4h16v2H4v-2z"/>
-              </svg>
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg overflow-hidden bg-red-600 flex items-center justify-center">
+              <Image 
+                src="/favicon.png" 
+                alt="StreamGrid" 
+                width={36}
+                height={36}
+                className="w-full h-full object-cover"
+              />
             </div>
             <span className="text-lg sm:text-xl font-semibold text-white">StreamGrid</span>
           </Link>
