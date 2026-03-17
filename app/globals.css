@@ -1,12 +1,5 @@
 @import "tailwindcss";
 
-@layer base {
-  .vds-player {
-    --media-brand: #00a8e1;
-    --media-brand-dark: #00a8e1;
-  }
-}
-
 @theme {
   --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
