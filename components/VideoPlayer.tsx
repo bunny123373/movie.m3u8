@@ -3,10 +3,6 @@
 import { useEffect, useRef, useState } from 'react';
 import Hls from 'hls.js';
 import { Source } from '@/lib/types';
-import {
-  MediaPlayer,
-  MediaProvider,
-} from '@vidstack/react';
 
 interface VideoPlayerProps {
   source: Source;
@@ -25,11 +21,9 @@ function normalizeEmbedUrl(rawUrl: string): string {
 
 export default function VideoPlayer({ source }: VideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const playerRef = useRef<any>(null);
   const hlsRef = useRef<Hls | null>(null);
   const [loading, setLoading] = useState(source.type !== 'embed');
   const [error, setError] = useState(false);
-  const [src, setSrc] = useState<string>('');
 
   const isEmbed = source.type === 'embed';
 
@@ -42,6 +36,9 @@ export default function VideoPlayer({ source }: VideoPlayerProps) {
     if (!video) {
       return;
     }
+
+    setLoading(true);
+    setError(false);
 
     const handleLoaded = () => setLoading(false);
     const handleError = () => {
@@ -94,18 +91,11 @@ export default function VideoPlayer({ source }: VideoPlayerProps) {
     };
   }, [source, isEmbed]);
 
-  useEffect(() => {
-    const video = videoRef.current;
-    if (video && !isEmbed && source.type !== 'm3u8' && !source.url.includes('.m3u8')) {
-      setSrc(source.url);
-    }
-  }, [source, isEmbed]);
-
   if (isEmbed) {
     const embedUrl = normalizeEmbedUrl(source.url);
 
     return (
-      <div className="w-full aspect-video bg-black">
+      <div className="w-full aspect-video bg-black rounded-xl overflow-hidden">
         <iframe
           src={embedUrl}
           className="h-full w-full"
@@ -117,27 +107,16 @@ export default function VideoPlayer({ source }: VideoPlayerProps) {
   }
 
   return (
-    <div className="relative w-full aspect-video bg-black rounded-xl overflow-hidden group">
-      <MediaPlayer
-        ref={playerRef}
-        src={src || undefined}
-        autoplay
-        playsinline
-        crossorigin="anonymous"
+    <div className="relative w-full aspect-video bg-black rounded-xl overflow-hidden">
+      <video
+        ref={videoRef}
         className="w-full h-full"
-      >
-        <MediaProvider>
-          <video
-            ref={videoRef}
-            className="w-full h-full object-contain"
-            playsInline
-            crossOrigin="anonymous"
-            controls
-          />
-        </MediaProvider>
-      </MediaPlayer>
+        controls
+        playsInline
+        crossOrigin="anonymous"
+      />
 
-      <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="absolute top-4 right-4 flex gap-2">
         <span className="px-3 py-1.5 bg-black/70 backdrop-blur-sm rounded text-xs font-medium text-white">
           {source.type.toUpperCase()}
         </span>
