@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, Suspense } from 'react';
 import Hls from 'hls.js';
 import { Source } from '@/lib/types';
 
@@ -19,16 +19,17 @@ function normalizeEmbedUrl(rawUrl: string): string {
   return embedUrl;
 }
 
-export default function VideoPlayer({ source }: VideoPlayerProps) {
+function VideoPlayerContent({ source }: VideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<Hls | null>(null);
-  const [loading, setLoading] = useState(source.type !== 'embed');
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
   const isEmbed = source.type === 'embed';
 
   useEffect(() => {
     if (isEmbed) {
+      setLoading(false);
       return;
     }
 
@@ -40,7 +41,7 @@ export default function VideoPlayer({ source }: VideoPlayerProps) {
     setLoading(true);
     setError(false);
 
-    const handleLoaded = () => setLoading(false);
+    const handleCanPlay = () => setLoading(false);
     const handleError = () => {
       setError(true);
       setLoading(false);
@@ -48,44 +49,50 @@ export default function VideoPlayer({ source }: VideoPlayerProps) {
 
     if (source.type === 'm3u8' || source.url.includes('.m3u8')) {
       if (Hls.isSupported()) {
-        const hls = new Hls({
-          enableWorker: true,
-          lowLatencyMode: true,
-        });
+        try {
+          const hls = new Hls({
+            enableWorker: true,
+            lowLatencyMode: false,
+          });
 
-        hlsRef.current = hls;
-        hls.loadSource(source.url);
-        hls.attachMedia(video);
+          hlsRef.current = hls;
+          hls.loadSource(source.url);
+          hls.attachMedia(video);
 
-        hls.on(Hls.Events.MANIFEST_PARSED, () => {
-          setLoading(false);
-          video.play().catch(() => {});
-        });
+          hls.on(Hls.Events.MANIFEST_PARSED, () => {
+            setLoading(false);
+            video.play().catch(() => {});
+          });
 
-        hls.on(Hls.Events.ERROR, (_event, data) => {
-          if (data.fatal) {
-            handleError();
-          }
-        });
+          hls.on(Hls.Events.ERROR, (_event, data) => {
+            if (data.fatal) {
+              handleError();
+            }
+          });
+        } catch (e) {
+          handleError();
+        }
       } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
         video.src = source.url;
-        video.addEventListener('loadedmetadata', handleLoaded);
+        video.addEventListener('loadedmetadata', handleCanPlay);
         video.addEventListener('error', handleError);
       } else {
         handleError();
       }
     } else {
       video.src = source.url;
-      video.addEventListener('loadeddata', handleLoaded);
+      video.addEventListener('canplay', handleCanPlay);
       video.addEventListener('error', handleError);
     }
 
     return () => {
-      video.removeEventListener('loadedmetadata', handleLoaded);
-      video.removeEventListener('loadeddata', handleLoaded);
+      video.removeEventListener('canplay', handleCanPlay);
+      video.removeEventListener('loadedmetadata', handleCanPlay);
       video.removeEventListener('error', handleError);
       if (hlsRef.current) {
-        hlsRef.current.destroy();
+        try {
+          hlsRef.current.destroy();
+        } catch (e) {}
         hlsRef.current = null;
       }
     };
@@ -98,6 +105,7 @@ export default function VideoPlayer({ source }: VideoPlayerProps) {
       <div className="w-full aspect-video bg-black rounded-xl overflow-hidden">
         <iframe
           src={embedUrl}
+          title="Video embed"
           className="h-full w-full"
           allowFullScreen
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
@@ -113,7 +121,6 @@ export default function VideoPlayer({ source }: VideoPlayerProps) {
         className="w-full h-full"
         controls
         playsInline
-        crossOrigin="anonymous"
       />
 
       <div className="absolute top-4 right-4 flex gap-2">
@@ -150,5 +157,17 @@ export default function VideoPlayer({ source }: VideoPlayerProps) {
         </div>
       )}
     </div>
+  );
+}
+
+export default function VideoPlayer(props: VideoPlayerProps) {
+  return (
+    <Suspense fallback={
+      <div className="w-full aspect-video bg-black rounded-xl flex items-center justify-center">
+        <div className="h-10 w-10 animate-spin rounded-full border-2 border-white border-t-transparent" />
+      </div>
+    }>
+      <VideoPlayerContent {...props} />
+    </Suspense>
   );
 }
