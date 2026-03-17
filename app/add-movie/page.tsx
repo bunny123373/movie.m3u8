@@ -156,12 +156,16 @@ export default function AddMoviePage() {
           </div>
           <div>
             <label className="block text-sm font-medium text-zinc-300 mb-2">
-              Release Date
+              Release Year
             </label>
             <input
-              type="date"
-              value={releaseDate}
-              onChange={(e) => setReleaseDate(e.target.value)}
+              type="text"
+              value={releaseDate ? releaseDate.split('-')[0] : ''}
+              onChange={(e) => {
+                const year = e.target.value.replace(/\D/g, '').slice(0, 4);
+                setReleaseDate(year ? `${year}-01-01` : '');
+              }}
+              placeholder="2024"
               className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm bg-zinc-800 border border-zinc-700 rounded-lg focus:outline-none focus:border-red-600 text-white"
               required
             />
@@ -227,17 +231,6 @@ export default function AddMoviePage() {
               <option value="1080p">1080p</option>
               <option value="4K">4K</option>
             </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-zinc-300 mb-2">
-              File Size (e.g., 2.4 GB)
-            </label>
-            <input
-              type="text"
-              value={fileSize}
-              onChange={(e) => setFileSize(e.target.value)}
-              className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm bg-zinc-800 border border-zinc-700 rounded-lg focus:outline-none focus:border-red-600 text-white"
-            />
           </div>
         </div>
 
