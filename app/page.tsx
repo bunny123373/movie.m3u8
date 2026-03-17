@@ -209,22 +209,6 @@ export default function HomePage() {
 
             <h1 className="mt-3 text-3xl font-bold leading-tight sm:text-5xl lg:text-6xl">{featured.title}</h1>
 
-            <div className="mt-4 flex flex-wrap items-center gap-2 text-sm text-slate-200">
-              <span className="text-[#46d369] font-semibold">{featured.rating}</span>
-              <span className="rounded-full border border-slate-500/40 px-3 py-1">{year}</span>
-              <span className="rounded-full border border-slate-500/40 px-3 py-1">{featured.quality}</span>
-              {isFeaturedSeries && (
-                <span className="rounded-full border border-slate-500/40 px-3 py-1">{featured.totalSeasons} Seasons | {featured.totalEpisodes} Episodes</span>
-              )}
-              {!isFeaturedSeries && (
-                <span className="rounded-full border border-slate-500/40 px-3 py-1">{featured.runtime}</span>
-              )}
-            </div>
-
-            <p className="mt-5 max-w-xl text-sm leading-relaxed text-slate-200 sm:text-base line-clamp-3">
-              {featured.overview}
-            </p>
-
             {featuredProgress && (
               <div className="mt-4 max-w-xs">
                 <div className="flex items-center justify-between text-xs text-gray-400 mb-1">
@@ -260,14 +244,6 @@ export default function HomePage() {
                 </svg>
                 View details
               </Link>
-            </div>
-
-            <div className="mt-5 flex flex-wrap gap-2">
-              {featured.genres.slice(0, 5).map((genre) => (
-                <span key={genre} className="rounded-full bg-[#1f2b37] px-3 py-1 text-xs font-medium text-slate-200">
-                  {genre}
-                </span>
-              ))}
             </div>
           </div>
         </div>
