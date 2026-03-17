@@ -38,9 +38,15 @@ interface FavoriteItem {
   id: string;
 }
 
+interface WatchProgress {
+  progress: number;
+  duration: number;
+}
+
 interface MovieCardProps {
   movie: CardMedia;
   className?: string;
+  progress?: WatchProgress;
 }
 
 function readFavorites(): FavoriteItem[] {
@@ -60,7 +66,7 @@ function readFavorites(): FavoriteItem[] {
   }
 }
 
-export default function MovieCard({ movie, className }: MovieCardProps) {
+export default function MovieCard({ movie, className, progress }: MovieCardProps) {
   const [isFavorite, setIsFavorite] = useState(() => {
     if (typeof window === 'undefined') {
       return false;
@@ -111,9 +117,16 @@ export default function MovieCard({ movie, className }: MovieCardProps) {
         <div className="absolute inset-0 bg-gradient-to-t from-[#09121a] via-[#09121a]/30 to-transparent" />
 
         <div className="absolute left-2 right-2 top-2 flex items-center justify-between">
-          <span className="rounded-md bg-black/55 px-2 py-1 text-[10px] font-semibold text-slate-100">
-            {movie.quality}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="rounded-md bg-black/55 px-2 py-1 text-[10px] font-semibold text-slate-100">
+              {movie.quality}
+            </span>
+            {progress && (
+              <span className="rounded-md bg-[#00a8e1]/80 px-1.5 py-0.5 text-[9px] font-semibold text-white">
+                {Math.round((progress.progress / progress.duration) * 100)}%
+              </span>
+            )}
+          </div>
           <button
             onClick={toggleFavorite}
             className="rounded-full bg-black/55 p-1.5 text-slate-100 transition-colors hover:bg-black/75"
@@ -133,6 +146,15 @@ export default function MovieCard({ movie, className }: MovieCardProps) {
             </svg>
           </button>
         </div>
+
+        {progress && (
+          <div className="absolute bottom-14 left-0 right-0 h-1 bg-black/50">
+            <div 
+              className="h-full bg-[#00a8e1]" 
+              style={{ width: `${(progress.progress / progress.duration) * 100}%` }}
+            />
+          </div>
+        )}
 
         <div className="absolute bottom-0 left-0 right-0 p-3">
           <h3 className="truncate text-sm font-semibold text-white sm:text-base">{movie.title}</h3>

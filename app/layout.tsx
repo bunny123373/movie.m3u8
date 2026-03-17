@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
+import BottomNav from "@/components/BottomNav";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -38,6 +39,7 @@ export default function RootLayout({
       <body className="bg-zinc-950 text-zinc-100 min-h-screen antialiased">
         <Navbar />
         {children}
+        <BottomNav />
       </body>
     </html>
   );

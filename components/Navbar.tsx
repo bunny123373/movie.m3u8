@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { useState } from 'react';
 import GlobalSearch from './GlobalSearch';
 import FavoritesButton from './FavoritesButton';
+import ThemeToggle from './ThemeToggle';
 
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -50,6 +51,7 @@ export default function Navbar() {
 
           <div className="hidden md:flex items-center gap-3">
             <GlobalSearch />
+            <ThemeToggle />
             <FavoritesButton />
           </div>
 
