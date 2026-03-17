@@ -2,10 +2,10 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
+import Link from 'next/link';
 import { Source, createSlug } from '@/lib/types';
 import TmdbSearch from '@/components/TmdbSearch';
-import MoviePreview from '@/components/MoviePreview';
-import SourceInput from '@/components/SourceInput';
 import GenreSelector from '@/components/GenreSelector';
 
 interface TmdbMovie {
@@ -19,26 +19,12 @@ interface TmdbMovie {
   vote_average: number;
   overview: string;
   genre_ids: (string | number)[];
-  media_type?: 'movie' | 'tv';
-}
-
-interface TmdbMovie {
-  id: number;
-  title?: string;
-  name?: string;
-  poster_path: string;
-  backdrop_path: string;
-  release_date?: string;
-  first_air_date?: string;
-  vote_average: number;
-  overview: string;
-  genre_ids: (string | number)[];
-  media_type?: 'movie' | 'tv';
 }
 
 export default function AddMoviePage() {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
+  const [activeTab, setActiveTab] = useState<'details' | 'sources'>('details');
   const [title, setTitle] = useState('');
   const [poster, setPoster] = useState('');
   const [backdrop, setBackdrop] = useState('');
@@ -50,8 +36,9 @@ export default function AddMoviePage() {
   const [subtitleLanguages, setSubtitleLanguages] = useState<string[]>([]);
   const [quality, setQuality] = useState('1080p');
   const [runtime, setRuntime] = useState('');
-  const [fileSize, setFileSize] = useState('');
-  const [sources, setSources] = useState<Source[]>([]);
+  const [sources, setSources] = useState<Source[]>([
+    { id: '1', name: 'Server 1', url: '', type: 'm3u8', priority: 1, active: true }
+  ]);
 
   const handleTmdbSelect = async (movie: TmdbMovie) => {
     setTitle(movie.title || movie.name || '');
@@ -96,8 +83,8 @@ export default function AddMoviePage() {
         subtitleLanguages,
         quality,
         runtime,
-        fileSize,
-        sources,
+        fileSize: '',
+        sources: sources.filter(s => s.url.trim()),
       };
 
       const res = await fetch('/api/movies', {
@@ -107,7 +94,7 @@ export default function AddMoviePage() {
       });
 
       if (res.ok) {
-        router.push('/admin');
+        router.push('/admin?success=true');
       } else {
         alert('Failed to save movie');
       }
@@ -119,181 +106,287 @@ export default function AddMoviePage() {
     }
   };
 
+  const addSource = () => {
+    setSources([...sources, { 
+      id: Date.now().toString(), 
+      name: `Server ${sources.length + 1}`, 
+      url: '', 
+      type: 'm3u8', 
+      priority: sources.length + 1, 
+      active: true 
+    }]);
+  };
+
+  const updateSource = (index: number, field: keyof Source, value: any) => {
+    const updated = [...sources];
+    updated[index] = { ...updated[index], [field]: value };
+    setSources(updated);
+  };
+
+  const removeSource = (index: number) => {
+    setSources(sources.filter((_, i) => i !== index));
+  };
+
   return (
-    <main className="max-w-3xl mx-auto px-3 sm:px-4 lg:px-8 py-6 sm:py-12">
-      <h1 className="text-2xl sm:text-3xl font-bold text-white mb-6 sm:mb-8">Add New Movie</h1>
-
-      <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8">
-        <div>
-          <label className="block text-sm font-medium text-zinc-300 mb-2">
-            Search Movie
-          </label>
-          <TmdbSearch onSelect={handleTmdbSelect} />
+    <main className="min-h-screen bg-[#0a0a0a] text-white">
+      <div className="max-w-5xl mx-auto px-4 py-8">
+        <div className="flex items-center gap-4 mb-8">
+          <Link href="/admin" className="text-gray-400 hover:text-white">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </Link>
+          <h1 className="text-2xl font-bold">Add Movie</h1>
         </div>
 
-        {(title || poster) && (
-          <MoviePreview
-            title={title}
-            poster={poster}
-            overview={overview}
-            rating={rating}
-            releaseDate={releaseDate}
-          />
-        )}
+        <div className="flex gap-2 mb-6 p-1 bg-[#161616] rounded-lg w-fit">
+          <button
+            onClick={() => setActiveTab('details')}
+            className={`px-6 py-2 rounded-md text-sm font-medium transition-all ${
+              activeTab === 'details' 
+                ? 'bg-white text-black' 
+                : 'text-gray-400 hover:text-white'
+            }`}
+          >
+            Details
+          </button>
+          <button
+            onClick={() => setActiveTab('sources')}
+            className={`px-6 py-2 rounded-md text-sm font-medium transition-all ${
+              activeTab === 'sources' 
+                ? 'bg-white text-black' 
+                : 'text-gray-400 hover:text-white'
+            }`}
+          >
+            Sources
+          </button>
+        </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-          <div>
-            <label className="block text-sm font-medium text-zinc-300 mb-2">
-              Title
-            </label>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm bg-zinc-800 border border-zinc-700 rounded-lg focus:outline-none focus:border-red-600 text-white"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-zinc-300 mb-2">
-              Release Year
-            </label>
-            <input
-              type="text"
-              value={releaseDate ? releaseDate.split('-')[0] : ''}
-              onChange={(e) => {
-                const year = e.target.value.replace(/\D/g, '').slice(0, 4);
-                setReleaseDate(year ? `${year}-01-01` : '');
-              }}
-              placeholder="2024"
-              className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm bg-zinc-800 border border-zinc-700 rounded-lg focus:outline-none focus:border-red-600 text-white"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-zinc-300 mb-2">
-              Poster URL
-            </label>
-            <input
-              type="url"
-              value={poster}
-              onChange={(e) => setPoster(e.target.value)}
-              className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm bg-zinc-800 border border-zinc-700 rounded-lg focus:outline-none focus:border-red-600 text-white"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-zinc-300 mb-2">
-              Backdrop URL
-            </label>
-            <input
-              type="url"
-              value={backdrop}
-              onChange={(e) => setBackdrop(e.target.value)}
-              className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm bg-zinc-800 border border-zinc-700 rounded-lg focus:outline-none focus:border-red-600 text-white"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-zinc-300 mb-2">
-              Rating
-            </label>
-            <input
-              type="number"
-              step="0.1"
-              min="0"
-              max="10"
-              value={rating}
-              onChange={(e) => setRating(parseFloat(e.target.value) || 0)}
-              className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm bg-zinc-800 border border-zinc-700 rounded-lg focus:outline-none focus:border-red-600 text-white"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-zinc-300 mb-2">
-              Runtime (e.g., 2h 18m)
-            </label>
-            <input
-              type="text"
-              value={runtime}
-              onChange={(e) => setRuntime(e.target.value)}
-              className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm bg-zinc-800 border border-zinc-700 rounded-lg focus:outline-none focus:border-red-600 text-white"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-zinc-300 mb-2">
-              Quality
-            </label>
-            <select
-              value={quality}
-              onChange={(e) => setQuality(e.target.value)}
-              className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm bg-zinc-800 border border-zinc-700 rounded-lg focus:outline-none focus:border-red-600 text-white"
+        <form onSubmit={handleSubmit}>
+          {activeTab === 'details' && (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div className="lg:col-span-2 space-y-6">
+                <div className="bg-[#161616] rounded-xl p-6 space-y-4">
+                  <div>
+                    <label className="block text-sm text-gray-400 mb-2">Search TMDB</label>
+                    <TmdbSearch onSelect={handleTmdbSelect} />
+                  </div>
+                </div>
+
+                <div className="bg-[#161616] rounded-xl p-6 space-y-4">
+                  <h2 className="text-lg font-semibold">Basic Info</h2>
+                  
+                  <div>
+                    <label className="block text-sm text-gray-400 mb-2">Title</label>
+                    <input
+                      type="text"
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      className="w-full px-4 py-3 bg-[#0a0a0a] border border-[#333] rounded-lg text-white focus:border-[#00a8e1] focus:outline-none"
+                      required
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm text-gray-400 mb-2">Release Year</label>
+                      <input
+                        type="text"
+                        value={releaseDate ? releaseDate.split('-')[0] : ''}
+                        onChange={(e) => {
+                          const year = e.target.value.replace(/\D/g, '').slice(0, 4);
+                          setReleaseDate(year ? `${year}-01-01` : '');
+                        }}
+                        placeholder="2024"
+                        className="w-full px-4 py-3 bg-[#0a0a0a] border border-[#333] rounded-lg text-white focus:border-[#00a8e1] focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-400 mb-2">Rating</label>
+                      <input
+                        type="number"
+                        step="0.1"
+                        min="0"
+                        max="10"
+                        value={rating}
+                        onChange={(e) => setRating(parseFloat(e.target.value) || 0)}
+                        className="w-full px-4 py-3 bg-[#0a0a0a] border border-[#333] rounded-lg text-white focus:border-[#00a8e1] focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm text-gray-400 mb-2">Overview</label>
+                    <textarea
+                      value={overview}
+                      onChange={(e) => setOverview(e.target.value)}
+                      rows={4}
+                      className="w-full px-4 py-3 bg-[#0a0a0a] border border-[#333] rounded-lg text-white focus:border-[#00a8e1] focus:outline-none resize-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="bg-[#161616] rounded-xl p-6 space-y-4">
+                  <h2 className="text-lg font-semibold">Media Info</h2>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm text-gray-400 mb-2">Runtime</label>
+                      <input
+                        type="text"
+                        value={runtime}
+                        onChange={(e) => setRuntime(e.target.value)}
+                        placeholder="2h 30m"
+                        className="w-full px-4 py-3 bg-[#0a0a0a] border border-[#333] rounded-lg text-white focus:border-[#00a8e1] focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-400 mb-2">Quality</label>
+                      <select
+                        value={quality}
+                        onChange={(e) => setQuality(e.target.value)}
+                        className="w-full px-4 py-3 bg-[#0a0a0a] border border-[#333] rounded-lg text-white focus:border-[#00a8e1] focus:outline-none"
+                      >
+                        <option value="480p">480p</option>
+                        <option value="720p">720p</option>
+                        <option value="1080p">1080p</option>
+                        <option value="4K">4K</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm text-gray-400 mb-2">Genres</label>
+                    <GenreSelector value={genres} onChange={setGenres} type="movie" />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm text-gray-400 mb-2">Audio Languages</label>
+                      <input
+                        type="text"
+                        value={audioLanguages.join(', ')}
+                        onChange={(e) => setAudioLanguages(e.target.value.split(',').map(s => s.trim()).filter(Boolean))}
+                        placeholder="English, Hindi"
+                        className="w-full px-4 py-3 bg-[#0a0a0a] border border-[#333] rounded-lg text-white focus:border-[#00a8e1] focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-400 mb-2">Subtitles</label>
+                      <input
+                        type="text"
+                        value={subtitleLanguages.join(', ')}
+                        onChange={(e) => setSubtitleLanguages(e.target.value.split(',').map(s => s.trim()).filter(Boolean))}
+                        placeholder="English"
+                        className="w-full px-4 py-3 bg-[#0a0a0a] border border-[#333] rounded-lg text-white focus:border-[#00a8e1] focus:outline-none"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-6">
+                <div className="bg-[#161616] rounded-xl p-6">
+                  <h2 className="text-lg font-semibold mb-4">Poster & Backdrop</h2>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm text-gray-400 mb-2">Poster URL</label>
+                      <input
+                        type="url"
+                        value={poster}
+                        onChange={(e) => setPoster(e.target.value)}
+                        className="w-full px-4 py-3 bg-[#0a0a0a] border border-[#333] rounded-lg text-white focus:border-[#00a8e1] focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm text-gray-400 mb-2">Backdrop URL</label>
+                      <input
+                        type="url"
+                        value={backdrop}
+                        onChange={(e) => setBackdrop(e.target.value)}
+                        className="w-full px-4 py-3 bg-[#0a0a0a] border border-[#333] rounded-lg text-white focus:border-[#00a8e1] focus:outline-none"
+                      />
+                    </div>
+                    {poster && (
+                      <div className="aspect-[2/3] rounded-lg overflow-hidden bg-[#0a0a0a]">
+                        <Image src={poster} alt="Poster" width={200} height={300} className="w-full h-full object-cover" />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'sources' && (
+            <div className="bg-[#161616] rounded-xl p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-lg font-semibold">Streaming Sources</h2>
+                <button
+                  type="button"
+                  onClick={addSource}
+                  className="px-4 py-2 bg-[#00a8e1] hover:bg-[#00b4e6] rounded-lg text-sm font-medium text-black transition-colors"
+                >
+                  + Add Source
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                {sources.map((source, index) => (
+                  <div key={source.id} className="flex flex-col sm:flex-row gap-3 p-4 bg-[#0a0a0a] rounded-lg">
+                    <input
+                      type="text"
+                      value={source.name}
+                      onChange={(e) => updateSource(index, 'name', e.target.value)}
+                      placeholder="Source name"
+                      className="flex-1 px-4 py-2.5 bg-[#161616] border border-[#333] rounded-lg text-white"
+                    />
+                    <select
+                      value={source.type}
+                      onChange={(e) => updateSource(index, 'type', e.target.value)}
+                      className="px-4 py-2.5 bg-[#161616] border border-[#333] rounded-lg text-white"
+                    >
+                      <option value="m3u8">M3U8</option>
+                      <option value="mp4">MP4</option>
+                      <option value="embed">Embed</option>
+                    </select>
+                    <input
+                      type="url"
+                      value={source.url}
+                      onChange={(e) => updateSource(index, 'url', e.target.value)}
+                      placeholder="Stream URL"
+                      className="flex-[2] px-4 py-2.5 bg-[#161616] border border-[#333] rounded-lg text-white"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeSource(index)}
+                      className="px-4 py-2.5 bg-red-900/50 text-red-400 rounded-lg hover:bg-red-900"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="flex gap-4 mt-8">
+            <button
+              type="submit"
+              disabled={saving}
+              className="flex-1 sm:flex-none px-8 py-3 bg-[#00a8e1] hover:bg-[#00b4e6] rounded-lg font-semibold text-black disabled:opacity-50 transition-colors"
             >
-              <option value="480p">480p</option>
-              <option value="720p">720p</option>
-              <option value="1080p">1080p</option>
-              <option value="4K">4K</option>
-            </select>
+              {saving ? 'Saving...' : 'Save Movie'}
+            </button>
+            <Link
+              href="/admin"
+              className="px-8 py-3 bg-[#222] hover:bg-[#333] rounded-lg font-semibold transition-colors"
+            >
+              Cancel
+            </Link>
           </div>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-zinc-300 mb-2">
-            Overview
-          </label>
-          <textarea
-            value={overview}
-            onChange={(e) => setOverview(e.target.value)}
-            rows={3}
-            className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm bg-zinc-800 border border-zinc-700 rounded-lg focus:outline-none focus:border-red-600 text-white resize-none"
-          />
-        </div>
-
-        <GenreSelector value={genres} onChange={setGenres} type="movie" />
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-          <div>
-            <label className="block text-sm font-medium text-zinc-300 mb-2">
-              Audio Languages (comma separated)
-            </label>
-            <input
-              type="text"
-              value={audioLanguages.join(', ')}
-              onChange={(e) => setAudioLanguages(e.target.value.split(',').map(s => s.trim()).filter(Boolean))}
-              placeholder="Telugu, Hindi, English"
-              className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm bg-zinc-800 border border-zinc-700 rounded-lg focus:outline-none focus:border-red-600 text-white"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-zinc-300 mb-2">
-              Subtitle Languages (comma separated)
-            </label>
-            <input
-              type="text"
-              value={subtitleLanguages.join(', ')}
-              onChange={(e) => setSubtitleLanguages(e.target.value.split(',').map(s => s.trim()).filter(Boolean))}
-              placeholder="English, Telugu"
-              className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm bg-zinc-800 border border-zinc-700 rounded-lg focus:outline-none focus:border-red-600 text-white"
-            />
-          </div>
-        </div>
-
-        <SourceInput sources={sources} onChange={setSources} />
-
-        <div className="flex flex-col sm:flex-row gap-3">
-          <button
-            type="submit"
-            disabled={saving}
-            className="flex-1 px-4 sm:px-6 py-2.5 sm:py-3 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors disabled:opacity-50"
-          >
-            {saving ? 'Saving...' : 'Save Movie'}
-          </button>
-          <button
-            type="button"
-            onClick={() => router.back()}
-            className="px-4 sm:px-6 py-2.5 sm:py-3 text-sm font-medium text-zinc-300 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition-colors"
-          >
-            Cancel
-          </button>
-        </div>
-      </form>
+        </form>
+      </div>
     </main>
   );
 }
