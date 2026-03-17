@@ -189,20 +189,44 @@ export default function AdminDashboard() {
           </div>
           <div className="flex flex-wrap gap-2">
             <Link
+              href="/admin/settings"
+              className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium bg-[#21262d] hover:bg-[#30363d] border border-[#30363d] rounded-lg transition-all"
+            >
+              Settings
+            </Link>
+            <Link
+              href="/admin/homepage"
+              className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium bg-[#21262d] hover:bg-[#30363d] border border-[#30363d] rounded-lg transition-all"
+            >
+              Homepage
+            </Link>
+            <Link
+              href="/admin/sources"
+              className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium bg-[#21262d] hover:bg-[#30363d] border border-[#30363d] rounded-lg transition-all"
+            >
+              Sources
+            </Link>
+            <Link
+              href="/admin/users"
+              className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium bg-[#21262d] hover:bg-[#30363d] border border-[#30363d] rounded-lg transition-all"
+            >
+              Users
+            </Link>
+            <Link
               href="/admin/import"
-              className="px-3 sm:px-5 py-2 text-xs sm:text-sm font-medium bg-[#238636] hover:bg-[#2ea043] rounded-lg transition-all"
+              className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium bg-[#238636] hover:bg-[#2ea043] rounded-lg transition-all"
             >
               Import
             </Link>
             <Link
               href="/add-movie"
-              className="px-3 sm:px-5 py-2 text-xs sm:text-sm font-medium bg-[#00a8e1] hover:bg-[#00b4e6] rounded-lg transition-all"
+              className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium bg-[#00a8e1] hover:bg-[#00b4e6] rounded-lg transition-all"
             >
               + Movie
             </Link>
             <Link
               href="/add-series"
-              className="px-3 sm:px-5 py-2 text-xs sm:text-sm font-medium bg-[#21262d] hover:bg-[#30363d] border border-[#30363d] rounded-lg transition-all"
+              className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium bg-[#21262d] hover:bg-[#30363d] border border-[#30363d] rounded-lg transition-all"
             >
               + Series
             </Link>
