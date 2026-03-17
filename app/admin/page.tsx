@@ -189,6 +189,12 @@ export default function AdminDashboard() {
           </div>
           <div className="flex gap-3">
             <Link
+              href="/admin/import"
+              className="px-5 py-2.5 text-sm font-medium bg-[#238636] hover:bg-[#2ea043] rounded-lg transition-all shadow-lg shadow-[#238636]/20"
+            >
+              Import from TMDB
+            </Link>
+            <Link
               href="/add-movie"
               className="px-5 py-2.5 text-sm font-medium bg-[#00a8e1] hover:bg-[#00b4e6] rounded-lg transition-all shadow-lg shadow-[#00a8e1]/20"
             >
