@@ -3,6 +3,10 @@
 import { useEffect, useRef, useState } from 'react';
 import Hls from 'hls.js';
 import { Source } from '@/lib/types';
+import {
+  MediaPlayer,
+  MediaProvider,
+} from '@vidstack/react';
 
 interface VideoPlayerProps {
   source: Source;
@@ -21,9 +25,11 @@ function normalizeEmbedUrl(rawUrl: string): string {
 
 export default function VideoPlayer({ source }: VideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const playerRef = useRef<any>(null);
   const hlsRef = useRef<Hls | null>(null);
   const [loading, setLoading] = useState(source.type !== 'embed');
   const [error, setError] = useState(false);
+  const [src, setSrc] = useState<string>('');
 
   const isEmbed = source.type === 'embed';
 
@@ -88,6 +94,13 @@ export default function VideoPlayer({ source }: VideoPlayerProps) {
     };
   }, [source, isEmbed]);
 
+  useEffect(() => {
+    const video = videoRef.current;
+    if (video && !isEmbed && source.type !== 'm3u8' && !source.url.includes('.m3u8')) {
+      setSrc(source.url);
+    }
+  }, [source, isEmbed]);
+
   if (isEmbed) {
     const embedUrl = normalizeEmbedUrl(source.url);
 
@@ -104,27 +117,53 @@ export default function VideoPlayer({ source }: VideoPlayerProps) {
   }
 
   return (
-    <div className="relative w-full aspect-video bg-black">
-      <video ref={videoRef} controls className="h-full w-full" playsInline />
+    <div className="relative w-full aspect-video bg-black rounded-xl overflow-hidden group">
+      <MediaPlayer
+        ref={playerRef}
+        src={src || undefined}
+        autoplay
+        playsinline
+        crossorigin="anonymous"
+        className="w-full h-full"
+      >
+        <MediaProvider>
+          <video
+            ref={videoRef}
+            className="w-full h-full object-contain"
+            playsInline
+            crossOrigin="anonymous"
+            controls
+          />
+        </MediaProvider>
+      </MediaPlayer>
+
+      <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+        <span className="px-3 py-1.5 bg-black/70 backdrop-blur-sm rounded text-xs font-medium text-white">
+          {source.type.toUpperCase()}
+        </span>
+        <span className="px-3 py-1.5 bg-black/70 backdrop-blur-sm rounded text-xs font-medium text-white">
+          {source.name}
+        </span>
+      </div>
 
       {loading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-[#061118]/80">
+        <div className="absolute inset-0 flex items-center justify-center bg-black/80 z-10 pointer-events-none">
           <div className="flex flex-col items-center gap-3">
-            <div className="h-10 w-10 animate-spin rounded-full border-2 border-[#00a8e1] border-t-transparent" />
-            <p className="text-sm text-slate-200">Loading stream...</p>
+            <div className="h-10 w-10 animate-spin rounded-full border-2 border-white border-t-transparent" />
+            <p className="text-sm text-white/80">Loading stream...</p>
           </div>
         </div>
       )}
 
       {error && (
-        <div className="absolute inset-0 flex items-center justify-center bg-[#061118]/85">
+        <div className="absolute inset-0 flex items-center justify-center bg-black/85 z-10">
           <div className="text-center">
-            <p className="mb-3 text-sm text-red-300">Failed to load this source.</p>
+            <p className="mb-3 text-sm text-red-400">Failed to load this source.</p>
             <a
               href={source.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm text-[#00a8e1] hover:text-[#25baf0] transition-colors"
+              className="text-sm text-white hover:text-white/80 underline"
             >
               Open source directly
             </a>
