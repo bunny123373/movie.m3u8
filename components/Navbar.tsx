@@ -17,7 +17,7 @@ export default function Navbar() {
           <Link href="/" className="flex items-center gap-2">
             <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg overflow-hidden">
               <Image 
-                src="/favicon.png" 
+                src="/icon.png" 
                 alt="TeluguDub" 
                 width={36}
                 height={36}
