@@ -221,7 +221,7 @@ export default function MovieDetailClient() {
 
   return (
     <main className="min-h-screen bg-[#0f171e] text-white">
-      <section className="relative h-[85vh] min-h-[500px] overflow-hidden">
+      <section className="relative w-full overflow-hidden" style={{ aspectRatio: '16/9', minHeight: '400px', maxHeight: '65vh' }}>
         <div className="absolute inset-0">
           <Image
             src={movie.backdrop}
@@ -229,15 +229,14 @@ export default function MovieDetailClient() {
             fill
             priority
             className="object-cover"
+            sizes="100vw"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#0f171e]/40 to-[#0f171e]" />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#0f171e]/90 via-[#0f171e]/50 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#0f171e]/20 via-[#0f171e]/50 to-[#0f171e]" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#0f171e] via-[#0f171e]/60 to-transparent" />
           <div className="absolute inset-0 bg-gradient-to-t from-[#0f171e] via-transparent to-transparent" />
         </div>
 
-        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[#0f171e] to-transparent" />
-
-        <div className="relative z-10 mx-auto flex h-full max-w-7xl flex-col justify-end px-4 pb-8 sm:px-6 lg:px-8">
+        <div className="relative z-10 mx-auto flex h-full max-w-7xl flex-col justify-end px-4 pb-6 sm:px-6 lg:px-8 pt-28">
           <div className="grid gap-8 lg:grid-cols-[280px_1fr] lg:items-end">
             <div className="hidden lg:block order-2">
               <div className="overflow-hidden rounded-xl border border-white/20 shadow-2xl shadow-black/80">
@@ -252,53 +251,43 @@ export default function MovieDetailClient() {
             </div>
 
             <div className="max-w-3xl order-1">
-              <Link
-                href="/"
-                className="mb-4 inline-flex items-center gap-2 text-sm text-white/70 hover:text-white transition-colors"
-              >
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-                Home
-              </Link>
-
-              <div className="flex items-center gap-3 mb-4">
-                <span className="flex items-center gap-1 rounded border border-white/30 bg-black/40 px-2.5 py-1 text-xs font-medium text-white backdrop-blur-sm">
-                  <svg className="w-3.5 h-3.5 text-yellow-400" viewBox="0 0 24 24" fill="currentColor">
+              <div className="flex items-center gap-3 mb-3">
+                <span className="flex items-center gap-1 rounded border border-white/30 bg-black/40 px-2.5 py-0.5 text-xs font-medium text-white backdrop-blur-sm">
+                  <svg className="w-3 h-3 text-yellow-400" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M12 17.27L18.18 21 16.54 13.97 22 9.24 14.81 8.63 12 2 9.19 8.63 2 9.24 7.46 13.97 5.82 21z" />
                   </svg>
                   {movie.rating.toFixed(1)}
                 </span>
-                <span className="rounded border border-white/30 bg-black/40 px-2.5 py-1 text-xs font-medium text-white backdrop-blur-sm">
+                <span className="rounded border border-white/30 bg-black/40 px-2.5 py-0.5 text-xs font-medium text-white backdrop-blur-sm">
                   {year}
                 </span>
                 {movie.quality && (
-                  <span className="rounded border border-[#00a8e1] bg-[#00a8e1]/20 px-2.5 py-1 text-xs font-semibold text-[#00a8e1]">
+                  <span className="rounded border border-[#00a8e1] bg-[#00a8e1]/20 px-2.5 py-0.5 text-xs font-semibold text-[#00a8e1]">
                     {movie.quality}
                   </span>
                 )}
                 {isSeries && (
-                  <span className="rounded bg-[#00a8e1]/20 px-2.5 py-1 text-xs font-semibold text-[#00a8e1]">
+                  <span className="rounded bg-[#00a8e1]/20 px-2.5 py-0.5 text-xs font-semibold text-[#00a8e1]">
                     Series
                   </span>
                 )}
               </div>
 
-              <h1 className="mb-4 text-4xl font-bold leading-tight drop-shadow-lg sm:text-5xl lg:text-6xl">
+              <h1 className="mb-3 text-3xl font-bold leading-tight drop-shadow-lg sm:text-4xl lg:text-5xl">
                 {movie.title}
               </h1>
 
-              <p className="mb-6 line-clamp-3 text-base leading-relaxed text-gray-200 sm:text-lg drop-shadow-md">
+              <p className="mb-4 line-clamp-2 text-sm leading-relaxed text-gray-200 sm:text-base drop-shadow-md">
                 {movie.overview || 'No description available.'}
               </p>
 
-              <div className="flex flex-wrap gap-3">
+              <div className="flex flex-wrap gap-2">
                 {primarySource && (
                   <Link
                     href={`/watch/${movie.slug || movie.id}?source=${primarySource.id}`}
-                    className="group flex items-center gap-2 rounded-sm bg-white px-6 py-2.5 text-sm font-semibold text-black transition-all hover:bg-gray-200"
+                    className="group flex items-center gap-2 rounded-sm bg-white px-5 py-2 text-sm font-semibold text-black transition-all hover:bg-gray-200"
                   >
-                    <svg className="h-5 w-5 transition-transform group-hover:scale-110" fill="currentColor" viewBox="0 0 24 24">
+                    <svg className="h-4 w-4 transition-transform group-hover:scale-110" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M8 5v14l11-7z" />
                     </svg>
                     Play
@@ -309,19 +298,19 @@ export default function MovieDetailClient() {
                     const details = document.getElementById('details-section');
                     details?.scrollIntoView({ behavior: 'smooth' });
                   }}
-                  className="flex items-center gap-2 rounded-sm border border-white/40 bg-white/10 px-6 py-2.5 text-sm font-semibold text-white backdrop-blur-sm transition-all hover:bg-white/20"
+                  className="flex items-center gap-2 rounded-sm border border-white/40 bg-white/10 px-5 py-2 text-sm font-semibold text-white backdrop-blur-sm transition-all hover:bg-white/20"
                 >
-                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                   More info
                 </button>
                 <button
                   onClick={toggleFavorite}
-                  className="flex items-center gap-2 rounded-sm border border-white/40 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white backdrop-blur-sm transition-all hover:bg-white/20"
+                  className="flex items-center gap-2 rounded-sm border border-white/40 bg-white/10 px-3 py-2 text-sm font-semibold text-white backdrop-blur-sm transition-all hover:bg-white/20"
                 >
                   <svg
-                    className={`h-5 w-5 ${isFavorite ? 'text-red-500' : ''}`}
+                    className={`h-4 w-4 ${isFavorite ? 'text-red-500' : ''}`}
                     fill={isFavorite ? 'currentColor' : 'none'}
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -336,11 +325,11 @@ export default function MovieDetailClient() {
                 </button>
               </div>
 
-              <div className="mt-5 flex flex-wrap gap-2">
+              <div className="mt-3 flex flex-wrap gap-2">
                 {movie.genres.map((genre) => (
                   <span
                     key={genre}
-                    className="rounded bg-white/10 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm"
+                    className="rounded bg-white/10 px-2.5 py-0.5 text-xs font-medium text-white backdrop-blur-sm"
                   >
                     {genre}
                   </span>
