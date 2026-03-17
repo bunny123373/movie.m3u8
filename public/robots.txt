@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://telugudub.com/sitemap.xml
