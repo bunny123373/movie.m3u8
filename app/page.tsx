@@ -103,7 +103,6 @@ export default function HomePage() {
   const [movies, setMovies] = useState<MovieItem[]>([]);
   const [series, setSeries] = useState<SeriesItem[]>([]);
   const [continueWatching, setContinueWatching] = useState<MediaItem[]>([]);
-  const [selectedGenre, setSelectedGenre] = useState<string>('all');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -143,29 +142,7 @@ export default function HomePage() {
     fetchMedia();
   }, []);
 
-  useEffect(() => {
-    const handleHashChange = () => {
-      const hash = window.location.hash.toLowerCase();
-      if (hash === '#movies' || hash === '#series') {
-        setSelectedGenre('all');
-      }
-    };
-
-    handleHashChange();
-    window.addEventListener('hashchange', handleHashChange);
-    return () => window.removeEventListener('hashchange', handleHashChange);
-  }, []);
-
   const allMedia = useMemo<MediaItem[]>(() => [...movies, ...series], [movies, series]);
-  const filteredMedia = useMemo(
-    () =>
-      allMedia.filter((item) =>
-        selectedGenre === 'all'
-          ? true
-          : item.genres.some((genre) => genre.toLowerCase() === selectedGenre.toLowerCase())
-      ),
-    [allMedia, selectedGenre]
-  );
 
   if (loading) {
     return <HomeSkeleton />;
@@ -224,11 +201,11 @@ export default function HomePage() {
               {featured.overview}
             </p>
 
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="mt-8 grid grid-cols-1 gap-3 sm:flex sm:items-center sm:gap-4">
               {featured.sources[0] && (
                 <Link
                   href={`/watch/${featured.slug || featured.id}?source=${featured.sources[0].id}`}
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-md bg-[#00a8e1] px-6 py-3 text-sm font-semibold text-[#051019] hover:bg-[#25baf0] transition-colors"
+                  className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-md bg-[#00a8e1] px-6 py-3 text-sm font-semibold text-[#051019] hover:bg-[#25baf0] transition-colors"
                 >
                   <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M8 5v14l11-7z" />
@@ -239,7 +216,7 @@ export default function HomePage() {
 
               <Link
                 href={`/movie/${featured.slug || featured.id}`}
-                className="w-full sm:w-auto inline-flex items-center justify-center rounded-md border border-slate-400/40 px-6 py-3 text-sm font-semibold text-slate-100 hover:border-slate-300 transition-colors"
+                className="w-full sm:w-auto flex items-center justify-center rounded-md border border-slate-400/40 px-6 py-3 text-sm font-semibold text-slate-100 hover:border-slate-300 transition-colors"
               >
                 View details
               </Link>
@@ -257,26 +234,6 @@ export default function HomePage() {
       </section>
 
       <section className="mx-auto max-w-7xl space-y-10 px-4 py-8 sm:px-6 lg:px-8">
-        <div className="overflow-x-auto pb-1">
-          <div className="flex gap-2">
-            {['all', 'Action', 'Drama', 'Comedy', 'Thriller', 'Sci-Fi', 'Romance', 'Horror', 'Adventure'].map(
-              (genre) => (
-                <button
-                  key={genre}
-                  onClick={() => setSelectedGenre(genre)}
-                  className={`whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium transition-colors ${
-                    selectedGenre === genre
-                      ? 'bg-[#00a8e1] text-[#051019]'
-                      : 'bg-[#1a2430] text-slate-300 hover:text-white'
-                  }`}
-                >
-                  {genre === 'all' ? 'All' : genre}
-                </button>
-              )
-            )}
-          </div>
-        </div>
-
         {continueWatching.length > 0 && (
           <section>
             <h2 className="mb-4 text-xl font-semibold sm:text-2xl">Continue Watching</h2>
@@ -288,23 +245,7 @@ export default function HomePage() {
           </section>
         )}
 
-        {selectedGenre !== 'all' && (
-          <section>
-            <h2 className="mb-4 text-xl font-semibold sm:text-2xl">{selectedGenre}</h2>
-            <div className="flex gap-3 overflow-x-auto pb-2">
-              {filteredMedia.map((item) => (
-                <MovieCard key={`genre-${item.id}`} movie={item} className="w-[220px] sm:w-[280px] shrink-0" />
-              ))}
-            </div>
-            {filteredMedia.length === 0 && (
-              <p className="rounded-lg border border-white/10 bg-[#16202a] px-4 py-3 text-sm text-slate-300">
-                No content found for this genre.
-              </p>
-            )}
-          </section>
-        )}
-
-        {selectedGenre === 'all' && movies.length > 0 && (
+        {movies.length > 0 && (
           <section id="movies" className="scroll-mt-24">
             <h2 className="mb-4 text-xl font-semibold sm:text-2xl">Movies</h2>
             <div className="flex gap-3 overflow-x-auto pb-2">
@@ -315,7 +256,7 @@ export default function HomePage() {
           </section>
         )}
 
-        {selectedGenre === 'all' && series.length > 0 && (
+        {series.length > 0 && (
           <section id="series" className="scroll-mt-24">
             <h2 className="mb-4 text-xl font-semibold sm:text-2xl">TV Series</h2>
             <div className="flex gap-3 overflow-x-auto pb-2">
