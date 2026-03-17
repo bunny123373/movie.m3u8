@@ -176,19 +176,19 @@ export default function HomePage() {
             alt={featured.title}
             fill
             priority
-            className="object-cover object-top opacity-60"
+            className="object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#0f171e] via-[#0f171e]/95 to-[#0f171e]/35" />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0f171e] via-[#0f171e]/40 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#0f171e] via-[#0f171e]/90 to-[#0f171e]/50" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0f171e] via-transparent to-transparent" />
         </div>
 
-        <div className="relative mx-auto max-w-7xl px-4 pb-12 pt-14 sm:px-6 lg:pb-16 lg:pt-20 lg:px-8">
-          <div className="max-w-3xl">
-            <span className="inline-flex items-center rounded-full border border-[#00a8e1]/45 bg-[#00a8e1]/12 px-3 py-1 text-xs font-semibold text-[#8fdfff]">
+        <div className="relative mx-auto max-w-7xl px-4 pb-16 pt-20 sm:px-6 lg:pb-20 lg:pt-24 lg:px-8">
+          <div className="max-w-3xl drop-shadow-2xl">
+            <span className="inline-flex items-center rounded-full border border-[#00a8e1]/45 bg-[#00a8e1]/12 px-3 py-1 text-xs font-semibold text-[#8fdfff] drop-shadow-md">
               Included with StreamGrid Prime
             </span>
 
-            <h1 className="mt-5 text-3xl font-bold leading-tight sm:text-5xl lg:text-6xl">{featured.title}</h1>
+            <h1 className="mt-5 text-3xl font-bold leading-tight sm:text-5xl lg:text-6xl drop-shadow-lg">{featured.title}</h1>
 
             <div className="mt-4 flex flex-wrap items-center gap-2 text-sm text-slate-200">
               <span className="rounded-full border border-slate-500/40 px-3 py-1">{year}</span>
