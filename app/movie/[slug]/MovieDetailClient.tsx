@@ -192,6 +192,33 @@ export default function MovieDetailClient() {
     ? `${totalSeasons} Season${totalSeasons === 1 ? '' : 's'} | ${totalEpisodes} Episode${totalEpisodes === 1 ? '' : 's'}`
     : movieData?.runtime || 'N/A';
 
+  const [similarMedia, setSimilarMedia] = useState<Media[]>([]);
+
+  useEffect(() => {
+    async function fetchSimilar() {
+      if (!movie) return;
+      
+      const endpoint = movie.mediaType === 'movie' ? '/api/movies' : '/api/series';
+      try {
+        const res = await fetch(endpoint);
+        const data: Media[] = await res.json();
+        
+        const similar = data
+          .filter((m: Media) => 
+            m.id !== movie.id && 
+            m.genres.some((g: string) => movie.genres.includes(g))
+          )
+          .slice(0, 6);
+        
+        setSimilarMedia(similar);
+      } catch (err) {
+        console.error('Failed to fetch similar:', err);
+      }
+    }
+    
+    fetchSimilar();
+  }, [movie]);
+
   return (
     <main className="min-h-screen bg-[#0f171e] text-white">
       <section className="relative overflow-hidden border-b border-white/10">
@@ -307,6 +334,49 @@ export default function MovieDetailClient() {
           </div>
         </div>
       </section>
+
+      {similarMedia.length > 0 && (
+        <section className="relative overflow-hidden">
+          <div className="absolute inset-0">
+            {similarMedia[0]?.backdrop && (
+              <Image
+                src={similarMedia[0].backdrop}
+                alt="Similar content"
+                fill
+                className="object-cover opacity-20"
+              />
+            )}
+            <div className="absolute inset-0 bg-gradient-to-b from-[#0f171e] via-[#0f171e]/95 to-[#0f171e]" />
+          </div>
+          
+          <div className="relative mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+            <h2 className="text-xl font-semibold sm:text-2xl mb-6">You Might Also Like</h2>
+            <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4">
+              {similarMedia.map((item) => (
+                <Link
+                  key={item.id}
+                  href={`/movie/${item.slug || item.id}`}
+                  className="group shrink-0 w-[140px] sm:w-[180px]"
+                >
+                  <div className="relative aspect-[2/3] rounded-lg overflow-hidden border border-white/10 group-hover:border-[#00a8e1] transition-colors">
+                    <Image
+                      src={item.poster}
+                      alt={item.title}
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                    <div className="absolute bottom-0 left-0 right-0 p-2">
+                      <p className="text-xs font-medium truncate">{item.title}</p>
+                      <p className="text-[10px] text-slate-400">★ {item.rating}</p>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       <section id="details-section" className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[1.1fr_1.2fr] lg:px-8">
         <div className="space-y-6">
