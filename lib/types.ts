@@ -1,3 +1,10 @@
+export interface Subtitle {
+  id: string;
+  label: string;
+  lang: string;
+  url: string;
+}
+
 export interface Source {
   id: string;
   name: string;
@@ -7,6 +14,7 @@ export interface Source {
   active: boolean;
   season?: number;
   episode?: number;
+  subtitles?: Subtitle[];
 }
 
 export function createSlug(title: string, id: string): string {

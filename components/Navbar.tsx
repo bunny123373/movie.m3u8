@@ -36,6 +36,18 @@ export default function Navbar() {
               </svg>
             </Link>
             <Link
+              href="/genres"
+              className="text-sm font-medium text-zinc-400 hover:text-white transition-colors"
+            >
+              Genres
+            </Link>
+            <Link
+              href="/search"
+              className="text-sm font-medium text-zinc-400 hover:text-white transition-colors"
+            >
+              Search
+            </Link>
+            <Link
               href="/#movies"
               className="text-sm font-medium text-zinc-400 hover:text-white transition-colors"
             >
@@ -71,13 +83,27 @@ export default function Navbar() {
 
         {mobileMenuOpen && (
           <div className="md:hidden py-4 border-t border-zinc-800 space-y-4">
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
               <Link
                 href="/"
                 onClick={() => setMobileMenuOpen(false)}
                 className="px-3 py-1.5 text-sm bg-zinc-800 text-zinc-300 rounded-full"
               >
                 Home
+              </Link>
+              <Link
+                href="/genres"
+                onClick={() => setMobileMenuOpen(false)}
+                className="px-3 py-1.5 text-sm bg-zinc-800 text-zinc-300 rounded-full"
+              >
+                Genres
+              </Link>
+              <Link
+                href="/search"
+                onClick={() => setMobileMenuOpen(false)}
+                className="px-3 py-1.5 text-sm bg-zinc-800 text-zinc-300 rounded-full"
+              >
+                Search
               </Link>
               <Link
                 href="/#movies"
