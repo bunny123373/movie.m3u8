@@ -228,7 +228,7 @@ export default function HomePage() {
               {featured.sources[0] && (
                 <Link
                   href={`/watch/${featured.slug || featured.id}?source=${featured.sources[0].id}`}
-                  className="inline-flex items-center justify-center gap-2 rounded-md bg-[#00a8e1] px-6 py-3 text-sm font-semibold text-[#051019] hover:bg-[#25baf0] transition-colors"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-md bg-[#00a8e1] px-6 py-3 text-sm font-semibold text-[#051019] hover:bg-[#25baf0] transition-colors"
                 >
                   <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M8 5v14l11-7z" />
@@ -239,7 +239,7 @@ export default function HomePage() {
 
               <Link
                 href={`/movie/${featured.slug || featured.id}`}
-                className="inline-flex items-center justify-center rounded-md border border-slate-400/40 px-6 py-3 text-sm font-semibold text-slate-100 hover:border-slate-300 transition-colors"
+                className="w-full sm:w-auto inline-flex items-center justify-center rounded-md border border-slate-400/40 px-6 py-3 text-sm font-semibold text-slate-100 hover:border-slate-300 transition-colors"
               >
                 View details
               </Link>
