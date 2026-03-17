@@ -6,8 +6,9 @@ import { usePathname } from 'next/navigation';
 export default function BottomNav() {
   const pathname = usePathname();
   const isWatchPage = pathname.startsWith('/watch');
+  const isAdminPage = pathname.startsWith('/admin') || pathname.startsWith('/add-');
   
-  if (isWatchPage) return null;
+  if (isWatchPage || isAdminPage) return null;
 
   const navItems = [
     { href: '/', icon: 'home', label: 'Home' },
