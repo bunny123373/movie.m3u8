@@ -348,12 +348,12 @@ export default function AdminDashboard() {
                   <td className="px-3 sm:px-4 py-3 text-[#8b949e] hidden sm:table-cell">{item.sources.length}</td>
                   <td className="px-3 sm:px-4 py-3 text-right">
                     <div className="flex items-center justify-end gap-1 sm:gap-2">
-                      <button
-                        onClick={() => setEditingItem(item)}
+                      <Link
+                        href={`/admin/edit/${item.id}?type=${item.mediaType}`}
                         className="px-2 sm:px-3 py-1 text-xs bg-[#21262d] hover:bg-[#30363d] border border-[#30363d] rounded transition-colors"
                       >
                         Edit
-                      </button>
+                      </Link>
                       <Link
                         href={`/movie/${item.slug || item.id}`}
                         className="px-2 sm:px-3 py-1 text-xs bg-[#21262d] hover:bg-[#30363d] border border-[#30363d] rounded transition-colors"
