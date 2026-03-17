@@ -186,86 +186,88 @@ export default function HomePage() {
 
   return (
     <main className="min-h-screen bg-[#0f171e] text-white pb-safe md:pb-0">
-      <section className="relative h-[85vh] min-h-[500px] overflow-hidden">
+      <section className="relative h-[70vh] min-h-[400px] overflow-hidden border-b border-white/10">
         <div className="absolute inset-0">
           <Image
             src={featured.backdrop}
             alt={featured.title}
             fill
             priority
-            className="object-cover"
+            className="object-cover object-top opacity-70"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0f171e] via-[#0f171e]/40 via-30% to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#0f171e]/90 via-[#0f171e]/50 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#0f171e] via-transparent to-[#0f171e]/80" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#0f171e] via-[#0f171e]/90 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0f171e] via-transparent to-transparent" />
         </div>
 
-        <div className="relative h-full flex items-end pb-24 sm:pb-28">
-          <div className="w-full max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="max-w-2xl">
-              <div className="flex flex-wrap items-center gap-3 mb-3">
-                {featured.ageRating && (
-                  <span className="border border-gray-500/50 px-1.5 py-0.5 text-xs text-gray-300">
-                    {featured.ageRating}
-                  </span>
-                )}
-                {isFeaturedSeries && featured.totalEpisodes && (
-                  <span className="text-gray-300 text-sm">{featured.totalEpisodes} Episodes</span>
-                )}
-              </div>
+        <div className="relative mx-auto max-w-7xl px-4 pb-12 pt-20 sm:px-6 lg:pb-16 lg:pt-24 lg:px-8">
+          <div className="max-w-2xl">
+            {featured.ageRating && (
+              <span className="inline-flex items-center rounded-full border border-[#00a8e1]/45 bg-[#00a8e1]/12 px-3 py-1 text-xs font-semibold text-[#8fdfff]">
+                {featured.ageRating}
+              </span>
+            )}
 
-              <h1 className="text-4xl font-bold leading-tight sm:text-5xl lg:text-6xl drop-shadow-2xl text-white">
-                {featured.title}
-              </h1>
+            <h1 className="mt-3 text-3xl font-bold leading-tight sm:text-5xl lg:text-6xl">{featured.title}</h1>
 
-              <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-gray-200 drop-shadow-md">
-                <span className="text-[#46d369] font-semibold">{featured.rating}</span>
-                <span className="text-gray-400">{year}</span>
-                <span className="border border-gray-500/50 px-1.5 py-0.5 text-xs">{featured.quality}</span>
-                {isFeaturedSeries && <span className="text-gray-400">{featured.totalSeasons} Seasons</span>}
-                {!isFeaturedSeries && <span className="text-gray-400">{featured.runtime}</span>}
-              </div>
-
-              <p className="mt-5 max-w-xl text-base leading-relaxed text-gray-200 drop-shadow-lg line-clamp-3">
-                {featured.overview}
-              </p>
-
-              {featuredProgress && (
-                <div className="mt-4 max-w-xs">
-                  <div className="flex items-center justify-between text-xs text-gray-400 mb-1">
-                    <span>Resume</span>
-                    <span>{Math.round((featuredProgress.progress / featuredProgress.duration) * 100)}%</span>
-                  </div>
-                  <div className="h-1 bg-gray-600/50 rounded-full overflow-hidden">
-                    <div 
-                      className="h-full bg-[#00a8e1] rounded-full" 
-                      style={{ width: `${(featuredProgress.progress / featuredProgress.duration) * 100}%` }}
-                    />
-                  </div>
-                </div>
+            <div className="mt-4 flex flex-wrap items-center gap-2 text-sm text-slate-200">
+              <span className="text-[#46d369] font-semibold">{featured.rating}</span>
+              <span className="rounded-full border border-slate-500/40 px-3 py-1">{year}</span>
+              <span className="rounded-full border border-slate-500/40 px-3 py-1">{featured.quality}</span>
+              {isFeaturedSeries && (
+                <span className="rounded-full border border-slate-500/40 px-3 py-1">{featured.totalSeasons} Seasons | {featured.totalEpisodes} Episodes</span>
               )}
+              {!isFeaturedSeries && (
+                <span className="rounded-full border border-slate-500/40 px-3 py-1">{featured.runtime}</span>
+              )}
+            </div>
 
-              <div className="mt-6 flex items-center gap-4">
-                <Link
-                  href={`/watch/${featured.slug || featured.id}?source=${featured.sources[0]?.id}`}
-                  className="flex items-center gap-3 rounded-sm bg-white px-8 py-3 text-lg font-semibold text-black hover:bg-gray-200 transition-colors"
-                >
-                  <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M8 5v14l11-7z" />
-                  </svg>
-                  {featuredProgress ? 'Resume' : 'Play'}
-                </Link>
+            <p className="mt-5 max-w-xl text-sm leading-relaxed text-slate-200 sm:text-base line-clamp-3">
+              {featured.overview}
+            </p>
 
-                <Link
-                  href={`/movie/${featured.slug || featured.id}`}
-                  className="flex items-center gap-2 rounded-sm border border-gray-400/60 bg-gray-400/20 px-6 py-3 text-lg font-medium text-white backdrop-blur-sm hover:bg-gray-400/30 transition-colors"
-                >
-                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  More info
-                </Link>
+            {featuredProgress && (
+              <div className="mt-4 max-w-xs">
+                <div className="flex items-center justify-between text-xs text-gray-400 mb-1">
+                  <span>Resume</span>
+                  <span>{Math.round((featuredProgress.progress / featuredProgress.duration) * 100)}%</span>
+                </div>
+                <div className="h-1 bg-gray-600/50 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-[#00a8e1] rounded-full" 
+                    style={{ width: `${(featuredProgress.progress / featuredProgress.duration) * 100}%` }}
+                  />
+                </div>
               </div>
+            )}
+
+            <div className="mt-6 grid grid-cols-1 gap-3 sm:flex sm:items-center sm:gap-4">
+              <Link
+                href={`/watch/${featured.slug || featured.id}?source=${featured.sources[0]?.id}`}
+                className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-md bg-[#00a8e1] px-6 py-3 text-sm font-semibold text-[#051019] hover:bg-[#25baf0] transition-colors"
+              >
+                <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M8 5v14l11-7z" />
+                </svg>
+                {featuredProgress ? 'Resume' : 'Watch now'}
+              </Link>
+
+              <Link
+                href={`/movie/${featured.slug || featured.id}`}
+                className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-md border border-slate-400/40 px-6 py-3 text-sm font-semibold text-slate-100 hover:border-slate-300 transition-colors"
+              >
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                View details
+              </Link>
+            </div>
+
+            <div className="mt-5 flex flex-wrap gap-2">
+              {featured.genres.slice(0, 5).map((genre) => (
+                <span key={genre} className="rounded-full bg-[#1f2b37] px-3 py-1 text-xs font-medium text-slate-200">
+                  {genre}
+                </span>
+              ))}
             </div>
           </div>
         </div>
