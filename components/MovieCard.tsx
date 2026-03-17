@@ -107,7 +107,7 @@ export default function MovieCard({ movie, className, progress }: MovieCardProps
     <Link href={`/movie/${linkSlug}`} className={`group block ${cardClassName}`}>
       <div className="relative aspect-video overflow-hidden rounded-xl border border-white/10 bg-[#101922] shadow-[0_16px_30px_-24px_rgba(0,0,0,0.9)] transition-all duration-300 group-hover:border-[#00a8e1]/55 group-hover:shadow-[0_20px_34px_-18px_rgba(0,168,225,0.35)]">
         <Image
-          src={movie.poster || movie.backdrop}
+          src={movie.backdrop || movie.poster}
           alt={movie.title}
           fill
           className="object-cover transition-transform duration-500 group-hover:scale-105"

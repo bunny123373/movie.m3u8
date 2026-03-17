@@ -189,7 +189,7 @@ export default function HomePage() {
       <section className="relative h-[70vh] min-h-[400px] overflow-hidden border-b border-white/10">
         <div className="absolute inset-0">
           <Image
-            src={featured.poster || featured.backdrop}
+            src={featured.backdrop}
             alt={featured.title}
             fill
             priority
