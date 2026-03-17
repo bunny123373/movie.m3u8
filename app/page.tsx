@@ -159,6 +159,30 @@ export default function HomePage() {
     return [...allMedia].sort((a, b) => b.rating - a.rating).slice(0, 10);
   }, [allMedia]);
 
+  const categorySections = useMemo(() => {
+    const genreCounts: Record<string, { count: number; items: MediaItem[] }> = {};
+    
+    allMedia.forEach((item) => {
+      item.genres.slice(0, 2).forEach((genre) => {
+        if (!genreCounts[genre]) {
+          genreCounts[genre] = { count: 0, items: [] };
+        }
+        genreCounts[genre].count++;
+        genreCounts[genre].items.push(item);
+      });
+    });
+
+    return Object.entries(genreCounts)
+      .filter(([_, data]) => data.count >= 2)
+      .sort((a, b) => b[1].count - a[1].count)
+      .slice(0, 6)
+      .map(([genre, data]) => ({
+        title: genre,
+        slug: genre.toLowerCase().replace(/\s+/g, '-'),
+        items: data.items.slice(0, 10),
+      }));
+  }, [allMedia]);
+
   if (loading) {
     return <HomeSkeleton />;
   }
@@ -186,52 +210,61 @@ export default function HomePage() {
 
   return (
     <main className="min-h-screen bg-[#0f171e] text-white pb-safe md:pb-0">
-      <section className="relative h-[70vh] min-h-[400px] overflow-hidden border-b border-white/10">
+      <section className="relative h-[85vh] min-h-[500px] overflow-hidden">
         <div className="absolute inset-0">
           <Image
             src={featured.backdrop}
             alt={featured.title}
             fill
             priority
-            className="object-cover object-top opacity-70"
+            className="object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#0f171e] via-[#0f171e]/90 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#0f171e]/30 to-[#0f171e]" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#0f171e]/80 via-[#0f171e]/40 to-transparent" />
           <div className="absolute inset-0 bg-gradient-to-t from-[#0f171e] via-transparent to-transparent" />
         </div>
 
-        <div className="relative mx-auto max-w-7xl px-4 pb-12 pt-20 sm:px-6 lg:pb-16 lg:pt-24 lg:px-8">
-          <div className="max-w-2xl">
-            {featured.ageRating && (
-              <span className="inline-flex items-center rounded-full border border-[#00a8e1]/45 bg-[#00a8e1]/12 px-3 py-1 text-xs font-semibold text-[#8fdfff]">
-                {featured.ageRating}
-              </span>
-            )}
+        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[#0f171e] to-transparent" />
 
-            <h1 className="mt-3 text-3xl font-bold leading-tight sm:text-5xl lg:text-6xl">{featured.title}</h1>
-
-            <div className="mt-4 flex flex-wrap items-center gap-2 text-sm text-slate-200">
-              <span className="text-[#46d369] font-semibold">{featured.rating}</span>
-              <span className="rounded-full border border-slate-500/40 px-3 py-1">{year}</span>
-              <span className="rounded-full border border-slate-500/40 px-3 py-1">{featured.quality}</span>
-              {isFeaturedSeries && (
-                <span className="rounded-full border border-slate-500/40 px-3 py-1">{featured.totalSeasons} Seasons | {featured.totalEpisodes} Episodes</span>
+        <div className="relative z-10 mx-auto flex h-full max-w-7xl flex-col justify-end px-4 pb-8 sm:px-6 lg:px-8">
+          <div className="max-w-3xl pb-8">
+            <div className="flex items-center gap-3 mb-4">
+              {featured.ageRating && (
+                <span className="inline-flex items-center rounded border border-white/30 bg-black/40 px-2.5 py-1 text-xs font-medium text-white backdrop-blur-sm">
+                  {featured.ageRating}
+                </span>
               )}
-              {!isFeaturedSeries && (
-                <span className="rounded-full border border-slate-500/40 px-3 py-1">{featured.runtime}</span>
+              <span className="flex items-center gap-1 rounded border border-white/30 bg-black/40 px-2.5 py-1 text-xs font-medium text-white backdrop-blur-sm">
+                <svg className="w-3.5 h-3.5 text-yellow-400" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 17.27L18.18 21 16.54 13.97 22 9.24 14.81 8.63 12 2 9.19 8.63 2 9.24 7.46 13.97 5.82 21z" />
+                </svg>
+                {featured.rating.toFixed(1)}
+              </span>
+              <span className="rounded border border-white/30 bg-black/40 px-2.5 py-1 text-xs font-medium text-white backdrop-blur-sm">
+                {year}
+              </span>
+              {featured.quality && (
+                <span className="rounded border border-[#00a8e1] bg-[#00a8e1]/20 px-2.5 py-1 text-xs font-semibold text-[#00a8e1]">
+                  {featured.quality}
+                </span>
               )}
             </div>
 
-            <p className="mt-5 max-w-xl text-sm leading-relaxed text-slate-200 sm:text-base line-clamp-3">
+            <h1 className="mb-4 text-4xl font-bold leading-tight drop-shadow-lg sm:text-5xl lg:text-6xl">
+              {featured.title}
+            </h1>
+
+            <p className="mb-6 line-clamp-3 text-base leading-relaxed text-gray-200 sm:text-lg drop-shadow-md">
               {featured.overview}
             </p>
 
             {featuredProgress && (
-              <div className="mt-4 max-w-xs">
-                <div className="flex items-center justify-between text-xs text-gray-400 mb-1">
-                  <span>Resume</span>
+              <div className="mb-4 max-w-sm">
+                <div className="flex items-center justify-between text-xs text-gray-300 mb-1">
+                  <span>Continue Watching</span>
                   <span>{Math.round((featuredProgress.progress / featuredProgress.duration) * 100)}%</span>
                 </div>
-                <div className="h-1 bg-gray-600/50 rounded-full overflow-hidden">
+                <div className="h-1.5 bg-white/20 rounded-full overflow-hidden">
                   <div 
                     className="h-full bg-[#00a8e1] rounded-full" 
                     style={{ width: `${(featuredProgress.progress / featuredProgress.duration) * 100}%` }}
@@ -240,34 +273,44 @@ export default function HomePage() {
               </div>
             )}
 
-            <div className="mt-6 grid grid-cols-1 gap-3 sm:flex sm:items-center sm:gap-4">
+            <div className="flex flex-wrap gap-3">
               <Link
                 href={`/watch/${featured.slug || featured.id}?source=${featured.sources[0]?.id}`}
-                className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-md bg-[#00a8e1] px-6 py-3 text-sm font-semibold text-[#051019] hover:bg-[#25baf0] transition-colors"
+                className="group flex items-center gap-2 rounded-sm bg-white px-6 py-2.5 text-sm font-semibold text-black transition-all hover:bg-gray-200"
               >
-                <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
+                <svg className="h-5 w-5 transition-transform group-hover:scale-110" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M8 5v14l11-7z" />
                 </svg>
-                {featuredProgress ? 'Resume' : 'Watch now'}
+                {featuredProgress ? 'Resume' : 'Play'}
               </Link>
 
               <Link
                 href={`/movie/${featured.slug || featured.id}`}
-                className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-md border border-slate-400/40 px-6 py-3 text-sm font-semibold text-slate-100 hover:border-slate-300 transition-colors"
+                className="flex items-center gap-2 rounded-sm border border-white/40 bg-white/10 px-6 py-2.5 text-sm font-semibold text-white backdrop-blur-sm transition-all hover:bg-white/20"
               >
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                View details
+                More info
               </Link>
             </div>
 
             <div className="mt-5 flex flex-wrap gap-2">
               {featured.genres.slice(0, 5).map((genre) => (
-                <span key={genre} className="rounded-full bg-[#1f2b37] px-3 py-1 text-xs font-medium text-slate-200">
+                <span key={genre} className="rounded bg-white/10 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm">
                   {genre}
                 </span>
               ))}
+              {isFeaturedSeries && (
+                <span className="rounded bg-[#00a8e1]/20 px-3 py-1 text-xs font-semibold text-[#00a8e1]">
+                  {featured.totalSeasons} Seasons • {featured.totalEpisodes} Episodes
+                </span>
+              )}
+              {!isFeaturedSeries && featured.runtime && (
+                <span className="rounded bg-white/10 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm">
+                  {featured.runtime}
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -339,6 +382,19 @@ export default function HomePage() {
             </div>
           </section>
         )}
+
+        {categorySections.map((section) => (
+          section.items.length > 0 && (
+            <section key={section.title} id={section.slug} className="scroll-mt-24">
+              <h2 className="mb-4 text-xl font-semibold sm:text-2xl">{section.title}</h2>
+              <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4">
+                {section.items.map((item) => (
+                  <MovieCard key={`cat-${item.id}`} movie={item} className="w-[160px] sm:w-[200px] md:w-[240px] shrink-0" progress={progressMap[item.id]} />
+                ))}
+              </div>
+            </section>
+          )
+        ))}
       </section>
     </main>
   );

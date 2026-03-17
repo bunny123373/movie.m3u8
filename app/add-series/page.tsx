@@ -6,6 +6,7 @@ import { Source, createSlug } from '@/lib/types';
 import TmdbSearch from '@/components/TmdbSearch';
 import MoviePreview from '@/components/MoviePreview';
 import SourceInput from '@/components/SourceInput';
+import GenreSelector from '@/components/GenreSelector';
 
 interface TmdbResult {
   id: number;
@@ -38,14 +39,27 @@ export default function AddSeriesPage() {
   const [totalEpisodes, setTotalEpisodes] = useState(0);
   const [sources, setSources] = useState<Source[]>([]);
 
-  const handleTmdbSelect = (result: TmdbResult) => {
+  const handleTmdbSelect = async (result: TmdbResult) => {
     setTitle(result.name || result.title || '');
     setPoster(result.poster_path ? `https://image.tmdb.org/t/p/w500${result.poster_path}` : '');
     setBackdrop(result.backdrop_path ? `https://image.tmdb.org/t/p/original${result.backdrop_path}` : '');
     setReleaseDate(result.first_air_date || result.release_date || '');
     setRating(result.vote_average);
     setOverview(result.overview);
-    setGenres(Array.isArray(result.genre_ids) ? result.genre_ids.map(String) : []);
+    
+    if (result.genre_ids && Array.isArray(result.genre_ids)) {
+      try {
+        const res = await fetch('/api/tmdb/genres?type=tv');
+        const data = await res.json();
+        const genreNames = result.genre_ids.map((id: string | number) => {
+          const genre = data.genres?.find((g: any) => g.id === Number(id));
+          return genre ? genre.name : String(id);
+        }).filter(Boolean);
+        setGenres(genreNames);
+      } catch {
+        setGenres(result.genre_ids.map(String));
+      }
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -209,6 +223,8 @@ export default function AddSeriesPage() {
             className="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm bg-zinc-800 border border-zinc-700 rounded-lg focus:outline-none focus:border-red-600 text-white resize-none"
           />
         </div>
+
+        <GenreSelector value={genres} onChange={setGenres} type="tv" />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
           <div>
