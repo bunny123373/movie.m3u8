@@ -53,6 +53,7 @@ export default function MovieDetailClient() {
   const [error, setError] = useState('');
   const [isFavorite, setIsFavorite] = useState(false);
   const [selectedSeason, setSelectedSeason] = useState(1);
+  const [similarMedia, setSimilarMedia] = useState<Media[]>([]);
 
   useEffect(() => {
     let isMounted = true;
@@ -132,6 +133,31 @@ export default function MovieDetailClient() {
     }
   }, [selectedSeason, totalSeasons]);
 
+  useEffect(() => {
+    async function fetchSimilar() {
+      if (!movie) return;
+      
+      const endpoint = movie.mediaType === 'movie' ? '/api/movies' : '/api/series';
+      try {
+        const res = await fetch(endpoint);
+        const data: Media[] = await res.json();
+        
+        const similar = data
+          .filter((m: Media) => 
+            m.id !== movie.id && 
+            m.genres.some((g: string) => movie.genres.includes(g))
+          )
+          .slice(0, 6);
+        
+        setSimilarMedia(similar);
+      } catch (err) {
+        console.error('Failed to fetch similar:', err);
+      }
+    }
+    
+    fetchSimilar();
+  }, [movie]);
+
   const toggleFavorite = () => {
     if (!movie) {
       return;
@@ -191,33 +217,6 @@ export default function MovieDetailClient() {
   const subHeading = isSeries
     ? `${totalSeasons} Season${totalSeasons === 1 ? '' : 's'} | ${totalEpisodes} Episode${totalEpisodes === 1 ? '' : 's'}`
     : movieData?.runtime || 'N/A';
-
-  const [similarMedia, setSimilarMedia] = useState<Media[]>([]);
-
-  useEffect(() => {
-    async function fetchSimilar() {
-      if (!movie) return;
-      
-      const endpoint = movie.mediaType === 'movie' ? '/api/movies' : '/api/series';
-      try {
-        const res = await fetch(endpoint);
-        const data: Media[] = await res.json();
-        
-        const similar = data
-          .filter((m: Media) => 
-            m.id !== movie.id && 
-            m.genres.some((g: string) => movie.genres.includes(g))
-          )
-          .slice(0, 6);
-        
-        setSimilarMedia(similar);
-      } catch (err) {
-        console.error('Failed to fetch similar:', err);
-      }
-    }
-    
-    fetchSimilar();
-  }, [movie]);
 
   return (
     <main className="min-h-screen bg-[#0f171e] text-white">
