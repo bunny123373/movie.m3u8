@@ -107,25 +107,24 @@ export default function HomePage() {
   const [trendingTmdb, setTrendingTmdb] = useState<MediaItem[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    async function fetchMedia() {
-      try {
-        const [moviesRes, seriesRes, trendingRes] = await Promise.all([
-          fetch('/api/movies'),
-          fetch('/api/series'),
-          fetch('/api/tmdb/trending?time_window=week')
-        ]);
+  async function fetchMedia() {
+    try {
+      const [moviesRes, seriesRes, trendingRes] = await Promise.all([
+        fetch('/api/movies?' + Date.now()),
+        fetch('/api/series?' + Date.now()),
+        fetch('/api/tmdb/trending?time_window=week&' + Date.now())
+      ]);
 
-        const moviesData: MovieApi[] = moviesRes.ok ? ((await moviesRes.json()) as MovieApi[]) : [];
-        const seriesData: SeriesApi[] = seriesRes.ok ? ((await seriesRes.json()) as SeriesApi[]) : [];
-        const trendingData = trendingRes.ok ? ((await trendingRes.json()) as { results: any[] }) : { results: [] };
+      const moviesData: MovieApi[] = moviesRes.ok ? ((await moviesRes.json()) as MovieApi[]) : [];
+      const seriesData: SeriesApi[] = seriesRes.ok ? ((await seriesRes.json()) as SeriesApi[]) : [];
+      const trendingData = trendingRes.ok ? ((await trendingRes.json()) as { results: any[] }) : { results: [] };
 
-        const movieItems: MovieItem[] = moviesData.map((movie) => ({ ...movie, mediaType: 'movie' }));
-        const seriesItems: SeriesItem[] = seriesData.map((item) => ({ ...item, mediaType: 'series' }));
-        const allMedia: MediaItem[] = [...movieItems, ...seriesItems];
+      const movieItems: MovieItem[] = moviesData.map((movie) => ({ ...movie, mediaType: 'movie' as const }));
+      const seriesItems: SeriesItem[] = seriesData.map((item) => ({ ...item, mediaType: 'series' as const }));
+      const allMedia: MediaItem[] = [...movieItems, ...seriesItems];
 
-        const localMovieMap = new Map(movieItems.map(m => [m.title.toLowerCase().trim(), m]));
-        const localSeriesMap = new Map(seriesItems.map(s => [s.title.toLowerCase().trim(), s]));
+      const localMovieMap = new Map(movieItems.map(m => [m.title.toLowerCase().trim(), m]));
+      const localSeriesMap = new Map(seriesItems.map(s => [s.title.toLowerCase().trim(), s]));
 
         const trendingItems: MediaItem[] = (trendingData.results || []).reduce((acc: MediaItem[], item: any) => {
           const titleKey = item.title?.toLowerCase().trim();
@@ -144,36 +143,53 @@ export default function HomePage() {
           return acc;
         }, []);
 
-        setTrendingTmdb(trendingItems);
-        setMovies(movieItems);
-        setSeries(seriesItems);
-        
-        const localFeatured = allMedia[0];
-        if (localFeatured) {
-          setFeatured(localFeatured);
-        } else if (trendingItems[0]) {
-          setFeatured(trendingItems[0]);
+        if (trendingItems.length < 3 && allMedia.length > 0) {
+          const topRated = [...allMedia]
+            .sort((a, b) => b.rating - a.rating)
+            .filter(item => !trendingItems.find(t => t.id === item.id))
+            .slice(0, 10 - trendingItems.length);
+          trendingItems.push(...topRated);
         }
 
-        const progressMap = readWatchProgress();
-        const continueItems = Object.keys(progressMap)
-          .filter((id) => {
-            const record = progressMap[id];
-            return record && record.progress > 0 && record.duration > 0 && record.progress < record.duration * 0.95;
-          })
-          .map((id) => allMedia.find((item) => item.id === id))
-          .filter((item): item is MediaItem => Boolean(item))
-          .slice(0, 10);
-
-        setContinueWatching(continueItems);
-      } catch (error) {
-        console.warn('Failed to fetch media:', error);
-      } finally {
-        setLoading(false);
+        setTrendingTmdb(trendingItems);
+      setMovies(movieItems);
+      setSeries(seriesItems);
+      
+      const localFeatured = allMedia[0];
+      if (localFeatured) {
+        setFeatured(localFeatured);
+      } else if (trendingItems[0]) {
+        setFeatured(trendingItems[0]);
       }
-    }
 
+      const progressMap = readWatchProgress();
+      const continueItems = Object.keys(progressMap)
+        .filter((id) => {
+          const record = progressMap[id];
+          return record && record.progress > 0 && record.duration > 0 && record.progress < record.duration * 0.95;
+        })
+        .map((id) => allMedia.find((item) => item.id === id))
+        .filter((item): item is MediaItem => Boolean(item))
+        .slice(0, 10);
+
+      setContinueWatching(continueItems);
+    } catch (error) {
+      console.warn('Failed to fetch media:', error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
     fetchMedia();
+  }, []);
+
+  useEffect(() => {
+    const handleFocus = () => {
+      fetchMedia();
+    };
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
   }, []);
 
   const allMedia = useMemo<MediaItem[]>(() => [...movies, ...series], [movies, series]);
@@ -243,10 +259,22 @@ export default function HomePage() {
 
   return (
     <main className="min-h-screen bg-[#0f171e] text-white pb-safe md:pb-0">
+      <button
+        onClick={() => {
+          setLoading(true);
+          fetchMedia();
+        }}
+        className="fixed top-4 right-4 z-50 p-2 bg-black/50 hover:bg-black/70 rounded-full backdrop-blur-sm transition-colors"
+        title="Refresh"
+      >
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        </svg>
+      </button>
       <section className="relative w-full overflow-hidden" style={{ aspectRatio: '16/9', minHeight: '400px', maxHeight: '65vh' }}>
         <div className="absolute inset-0">
           <Image
-            src={featured.backdrop}
+            src={featured.backdrop || featured.poster || '/placeholder.jpg'}
             alt={featured.title}
             fill
             priority
