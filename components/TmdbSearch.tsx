@@ -104,10 +104,15 @@ export default function TmdbSearch({ onSelect, type = 'all' }: TmdbSearchProps) 
     const mediaType = result.media_type || (type === 'tv' ? 'tv' : 'movie');
     
     onSelect({
-      ...result,
+      id: result.id,
       title,
+      poster_path: result.poster_path,
+      backdrop_path: result.backdrop_path,
       release_date: releaseDate,
-      genre_ids: genres as unknown as number[],
+      first_air_date: releaseDate,
+      vote_average: result.vote_average,
+      overview: result.overview,
+      genres,
       media_type: mediaType as 'movie' | 'tv',
     });
     setQuery('');

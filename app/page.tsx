@@ -181,7 +181,7 @@ export default function HomePage() {
         slug: genre.toLowerCase().replace(/\s+/g, '-'),
         items: data.items.slice(0, 10),
       }));
-  }, [allMedia]);
+  }, [allMedia, featured]);
 
   if (loading) {
     return <HomeSkeleton />;

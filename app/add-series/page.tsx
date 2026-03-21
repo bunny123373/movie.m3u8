@@ -18,7 +18,7 @@ interface TmdbResult {
   release_date?: string;
   vote_average: number;
   overview: string;
-  genre_ids: (string | number)[];
+  genres: string[];
 }
 
 interface Season {
@@ -58,18 +58,8 @@ export default function AddSeriesPage() {
     setRating(result.vote_average);
     setOverview(result.overview);
     
-    if (result.genre_ids && Array.isArray(result.genre_ids)) {
-      try {
-        const res = await fetch('/api/tmdb/genres?type=tv');
-        const data = await res.json();
-        const genreNames = result.genre_ids.map((id: string | number) => {
-          const genre = data.genres?.find((g: any) => g.id === Number(id));
-          return genre ? genre.name : String(id);
-        }).filter(Boolean);
-        setGenres(genreNames);
-      } catch {
-        setGenres(result.genre_ids.map(String));
-      }
+    if (result.genres && Array.isArray(result.genres)) {
+      setGenres(result.genres);
     }
   };
 

@@ -18,7 +18,7 @@ interface TmdbMovie {
   first_air_date?: string;
   vote_average: number;
   overview: string;
-  genre_ids: (string | number)[];
+  genres: string[];
 }
 
 export default function AddMoviePage() {
@@ -50,18 +50,8 @@ export default function AddMoviePage() {
     setRating(movie.vote_average);
     setOverview(movie.overview);
     
-    if (movie.genre_ids && Array.isArray(movie.genre_ids)) {
-      try {
-        const res = await fetch('/api/tmdb/genres?type=movie');
-        const data = await res.json();
-        const genreNames = movie.genre_ids.map((id: string | number) => {
-          const genre = data.genres?.find((g: any) => g.id === Number(id));
-          return genre ? genre.name : String(id);
-        }).filter(Boolean);
-        setGenres(genreNames);
-      } catch {
-        setGenres(movie.genre_ids.map(String));
-      }
+    if (movie.genres && Array.isArray(movie.genres)) {
+      setGenres(movie.genres);
     }
   };
 
