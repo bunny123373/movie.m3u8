@@ -148,23 +148,22 @@ export default function MovieCard({ movie, className, progress }: MovieCardProps
         </div>
 
         {progress && (
-          <div className="absolute bottom-14 left-0 right-0 h-1 bg-black/50">
+          <div className="absolute bottom-0 left-0 right-0 h-1 bg-black/50">
             <div 
               className="h-full bg-[#00a8e1]" 
               style={{ width: `${(progress.progress / progress.duration) * 100}%` }}
             />
           </div>
         )}
-
-        <div className="absolute bottom-0 left-0 right-0 p-3">
-          <h3 className="truncate text-sm font-semibold text-white sm:text-base">{movie.title}</h3>
-          <div className="mt-1 flex items-center gap-2 text-[11px] text-slate-300 sm:text-xs">
-            <span>{year}</span>
-            <span>Rating {movie.rating}</span>
-            {movie.mediaType === 'series' && movie.totalSeasons && (
-              <span>{movie.totalSeasons} Seasons</span>
-            )}
-          </div>
+      </div>
+      <div className="mt-2 px-1">
+        <h3 className="truncate text-sm font-medium text-white">{movie.title}</h3>
+        <div className="flex items-center gap-2 text-[11px] text-slate-400 mt-0.5">
+          <span>{year}</span>
+          <span className="text-yellow-500">★ {movie.rating.toFixed(1)}</span>
+          {movie.mediaType === 'series' && movie.totalSeasons && (
+            <span>{movie.totalSeasons} Seasons</span>
+          )}
         </div>
       </div>
     </Link>
