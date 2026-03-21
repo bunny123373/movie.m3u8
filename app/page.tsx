@@ -104,23 +104,57 @@ export default function HomePage() {
   const [movies, setMovies] = useState<MovieItem[]>([]);
   const [series, setSeries] = useState<SeriesItem[]>([]);
   const [continueWatching, setContinueWatching] = useState<MediaItem[]>([]);
+  const [trendingTmdb, setTrendingTmdb] = useState<MediaItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchMedia() {
       try {
-        const [moviesRes, seriesRes] = await Promise.all([fetch('/api/movies'), fetch('/api/series')]);
+        const [moviesRes, seriesRes, trendingRes] = await Promise.all([
+          fetch('/api/movies'),
+          fetch('/api/series'),
+          fetch('/api/tmdb/trending?time_window=week')
+        ]);
 
         const moviesData: MovieApi[] = moviesRes.ok ? ((await moviesRes.json()) as MovieApi[]) : [];
         const seriesData: SeriesApi[] = seriesRes.ok ? ((await seriesRes.json()) as SeriesApi[]) : [];
+        const trendingData = trendingRes.ok ? ((await trendingRes.json()) as { results: any[] }) : { results: [] };
 
         const movieItems: MovieItem[] = moviesData.map((movie) => ({ ...movie, mediaType: 'movie' }));
         const seriesItems: SeriesItem[] = seriesData.map((item) => ({ ...item, mediaType: 'series' }));
         const allMedia: MediaItem[] = [...movieItems, ...seriesItems];
 
+        const trendingItems: MediaItem[] = (trendingData.results || []).map((item: any) => ({
+          id: item.tmdbId?.toString() || item.id,
+          slug: item.slug,
+          title: item.title,
+          poster: item.poster,
+          backdrop: item.backdrop,
+          rating: item.rating,
+          releaseDate: item.releaseDate,
+          overview: item.overview,
+          genres: item.genres || [],
+          audioLanguages: [],
+          subtitleLanguages: [],
+          quality: item.quality || '1080p',
+          sources: item.sources || [],
+          mediaType: item.mediaType as 'movie' | 'series',
+          runtime: item.runtime || '',
+          fileSize: item.fileSize || '',
+          totalSeasons: item.totalSeasons || 0,
+          totalEpisodes: item.totalEpisodes || 0,
+        }));
+
+        setTrendingTmdb(trendingItems);
         setMovies(movieItems);
         setSeries(seriesItems);
-        setFeatured(allMedia[0] || null);
+        
+        const localFeatured = allMedia[0];
+        if (localFeatured) {
+          setFeatured(localFeatured);
+        } else if (trendingItems[0]) {
+          setFeatured(trendingItems[0]);
+        }
 
         const progressMap = readWatchProgress();
         const continueItems = Object.keys(progressMap)
@@ -327,11 +361,11 @@ export default function HomePage() {
           </section>
         )}
 
-        {trendingMedia.length > 0 && (
+        {trendingTmdb.length > 0 && (
           <section>
             <h2 className="mb-4 text-xl font-semibold sm:text-2xl">Trending Now</h2>
             <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4">
-              {trendingMedia.map((item) => (
+              {trendingTmdb.map((item) => (
                 <MovieCard key={`trending-${item.id}`} movie={item} className="w-[160px] sm:w-[200px] md:w-[240px] shrink-0" progress={progressMap[item.id]} />
               ))}
             </div>
