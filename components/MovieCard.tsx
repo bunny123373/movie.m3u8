@@ -32,6 +32,7 @@ interface CardMedia {
   totalSeasons?: number;
   totalEpisodes?: number;
   sources: Source[];
+  isLocal?: boolean;
 }
 
 interface FavoriteItem {
@@ -76,6 +77,7 @@ export default function MovieCard({ movie, className, progress }: MovieCardProps
   const year = movie.releaseDate.split('-')[0];
   const linkSlug = movie.slug || movie.id;
   const cardClassName = className || 'w-[220px] sm:w-[260px] shrink-0';
+  const isLocal = movie.isLocal !== false;
 
   const toggleFavorite = (event: React.MouseEvent) => {
     event.preventDefault();
@@ -103,30 +105,38 @@ export default function MovieCard({ movie, className, progress }: MovieCardProps
     setIsFavorite(true);
   };
 
-  return (
-    <Link href={`/movie/${linkSlug}`} className={`group block ${cardClassName}`}>
-      <div className="relative aspect-video overflow-hidden rounded-xl border border-white/10 bg-[#101922] shadow-[0_16px_30px_-24px_rgba(0,0,0,0.9)] transition-all duration-300 group-hover:border-[#00a8e1]/55 group-hover:shadow-[0_20px_34px_-18px_rgba(0,168,225,0.35)]">
-        <Image
-          src={movie.backdrop || movie.poster}
-          alt={movie.title}
-          fill
-          className="object-cover transition-transform duration-500 group-hover:scale-105"
-          sizes="(max-width: 640px) 85vw, (max-width: 1024px) 45vw, 260px"
-        />
+  const cardContent = (
+    <div className={`relative aspect-video overflow-hidden rounded-xl border bg-[#101922] shadow-[0_16px_30px_-24px_rgba(0,0,0,0.9)] transition-all duration-300 ${isLocal ? 'border-white/10 group-hover:border-[#00a8e1]/55 group-hover:shadow-[0_20px_34px_-18px_rgba(0,168,225,0.35)]' : 'border-yellow-500/50'}`}>
+      <Image
+        src={movie.backdrop || movie.poster}
+        alt={movie.title}
+        fill
+        className={`object-cover transition-transform duration-500 ${isLocal ? 'group-hover:scale-105' : ''}`}
+        sizes="(max-width: 640px) 85vw, (max-width: 1024px) 45vw, 260px"
+      />
 
-        <div className="absolute inset-0 bg-gradient-to-t from-[#09121a] via-[#09121a]/30 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-t from-[#09121a] via-[#09121a]/30 to-transparent" />
+      
+      {!isLocal && (
+        <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+          <span className="rounded-full bg-yellow-500/90 px-3 py-1 text-xs font-bold text-black">
+            Coming Soon
+          </span>
+        </div>
+      )}
 
-        <div className="absolute left-2 right-2 top-2 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="rounded-md bg-black/55 px-2 py-1 text-[10px] font-semibold text-slate-100">
-              {movie.quality}
+      <div className="absolute left-2 right-2 top-2 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className="rounded-md bg-black/55 px-2 py-1 text-[10px] font-semibold text-slate-100">
+            {movie.quality}
+          </span>
+          {progress && (
+            <span className="rounded-md bg-[#00a8e1]/80 px-1.5 py-0.5 text-[9px] font-semibold text-white">
+              {Math.round((progress.progress / progress.duration) * 100)}%
             </span>
-            {progress && (
-              <span className="rounded-md bg-[#00a8e1]/80 px-1.5 py-0.5 text-[9px] font-semibold text-white">
-                {Math.round((progress.progress / progress.duration) * 100)}%
-              </span>
-            )}
-          </div>
+          )}
+        </div>
+        {isLocal && (
           <button
             onClick={toggleFavorite}
             className="rounded-full bg-black/55 p-1.5 text-slate-100 transition-colors hover:bg-black/75"
@@ -145,29 +155,43 @@ export default function MovieCard({ movie, className, progress }: MovieCardProps
               />
             </svg>
           </button>
-        </div>
-
-        {progress && (
-          <div className="absolute bottom-14 left-0 right-0 h-1 bg-black/50">
-            <div 
-              className="h-full bg-[#00a8e1]" 
-              style={{ width: `${(progress.progress / progress.duration) * 100}%` }}
-            />
-          </div>
         )}
+      </div>
 
-        <div className="absolute bottom-0 left-0 right-0 p-3">
-          <h3 className="truncate text-sm font-semibold text-white sm:text-base">{movie.title}</h3>
-          <div className="mt-1 flex items-center gap-2 text-[11px] text-slate-300 sm:text-xs">
-            <span>{year}</span>
-            <span>Rating {movie.rating}</span>
-            {movie.mediaType === 'series' && movie.totalSeasons && (
-              <span>{movie.totalSeasons} Seasons</span>
-            )}
-          </div>
+      {progress && (
+        <div className="absolute bottom-14 left-0 right-0 h-1 bg-black/50">
+          <div 
+            className="h-full bg-[#00a8e1]" 
+            style={{ width: `${(progress.progress / progress.duration) * 100}%` }}
+          />
+        </div>
+      )}
+
+      <div className="absolute bottom-0 left-0 right-0 p-3">
+        <h3 className="truncate text-sm font-semibold text-white sm:text-base">{movie.title}</h3>
+        <div className="mt-1 flex items-center gap-2 text-[11px] text-slate-300 sm:text-xs">
+          <span>{year}</span>
+          <span>Rating {movie.rating}</span>
+          {movie.mediaType === 'series' && movie.totalSeasons && (
+            <span>{movie.totalSeasons} Seasons</span>
+          )}
         </div>
       </div>
-    </Link>
+    </div>
+  );
+
+  if (isLocal) {
+    return (
+      <Link href={`/movie/${linkSlug}`} className={`group block ${cardClassName}`}>
+        {cardContent}
+      </Link>
+    );
+  }
+
+  return (
+    <div className={`block ${cardClassName}`} title="Not available - Add to library">
+      {cardContent}
+    </div>
   );
 }
 

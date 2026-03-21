@@ -124,26 +124,46 @@ export default function HomePage() {
         const seriesItems: SeriesItem[] = seriesData.map((item) => ({ ...item, mediaType: 'series' }));
         const allMedia: MediaItem[] = [...movieItems, ...seriesItems];
 
-        const trendingItems: MediaItem[] = (trendingData.results || []).map((item: any) => ({
-          id: item.tmdbId?.toString() || item.id,
-          slug: item.slug,
-          title: item.title,
-          poster: item.poster,
-          backdrop: item.backdrop,
-          rating: item.rating,
-          releaseDate: item.releaseDate,
-          overview: item.overview,
-          genres: item.genres || [],
-          audioLanguages: [],
-          subtitleLanguages: [],
-          quality: item.quality || '1080p',
-          sources: item.sources || [],
-          mediaType: item.mediaType as 'movie' | 'series',
-          runtime: item.runtime || '',
-          fileSize: item.fileSize || '',
-          totalSeasons: item.totalSeasons || 0,
-          totalEpisodes: item.totalEpisodes || 0,
-        }));
+        const localMovieMap = new Map(movieItems.map(m => [m.title.toLowerCase().trim(), m]));
+        const localSeriesMap = new Map(seriesItems.map(s => [s.title.toLowerCase().trim(), s]));
+
+        const trendingItems: MediaItem[] = (trendingData.results || []).map((item: any) => {
+          const titleKey = item.title?.toLowerCase().trim();
+          
+          if (item.mediaType === 'series') {
+            const localMatch = localSeriesMap.get(titleKey);
+            if (localMatch) {
+              return { ...localMatch, isLocal: true };
+            }
+          } else {
+            const localMatch = localMovieMap.get(titleKey);
+            if (localMatch) {
+              return { ...localMatch, isLocal: true };
+            }
+          }
+          
+          return {
+            id: item.tmdbId?.toString() || item.id,
+            slug: item.slug,
+            title: item.title,
+            poster: item.poster,
+            backdrop: item.backdrop,
+            rating: item.rating,
+            releaseDate: item.releaseDate,
+            overview: item.overview,
+            genres: item.genres || [],
+            audioLanguages: [],
+            subtitleLanguages: [],
+            quality: '1080p',
+            sources: [],
+            mediaType: item.mediaType as 'movie' | 'series',
+            runtime: item.runtime || '',
+            fileSize: item.fileSize || '',
+            totalSeasons: 0,
+            totalEpisodes: 0,
+            isLocal: false,
+          };
+        });
 
         setTrendingTmdb(trendingItems);
         setMovies(movieItems);
