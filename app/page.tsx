@@ -127,43 +127,22 @@ export default function HomePage() {
         const localMovieMap = new Map(movieItems.map(m => [m.title.toLowerCase().trim(), m]));
         const localSeriesMap = new Map(seriesItems.map(s => [s.title.toLowerCase().trim(), s]));
 
-        const trendingItems: MediaItem[] = (trendingData.results || []).map((item: any) => {
+        const trendingItems: MediaItem[] = (trendingData.results || []).reduce((acc: MediaItem[], item: any) => {
           const titleKey = item.title?.toLowerCase().trim();
           
           if (item.mediaType === 'series') {
             const localMatch = localSeriesMap.get(titleKey);
             if (localMatch) {
-              return { ...localMatch, isLocal: true };
+              acc.push(localMatch);
             }
           } else {
             const localMatch = localMovieMap.get(titleKey);
             if (localMatch) {
-              return { ...localMatch, isLocal: true };
+              acc.push(localMatch);
             }
           }
-          
-          return {
-            id: item.tmdbId?.toString() || item.id,
-            slug: item.slug,
-            title: item.title,
-            poster: item.poster,
-            backdrop: item.backdrop,
-            rating: item.rating,
-            releaseDate: item.releaseDate,
-            overview: item.overview,
-            genres: item.genres || [],
-            audioLanguages: [],
-            subtitleLanguages: [],
-            quality: '1080p',
-            sources: [],
-            mediaType: item.mediaType as 'movie' | 'series',
-            runtime: item.runtime || '',
-            fileSize: item.fileSize || '',
-            totalSeasons: 0,
-            totalEpisodes: 0,
-            isLocal: false,
-          };
-        });
+          return acc;
+        }, []);
 
         setTrendingTmdb(trendingItems);
         setMovies(movieItems);
