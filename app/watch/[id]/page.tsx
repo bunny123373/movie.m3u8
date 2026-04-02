@@ -137,9 +137,6 @@ export default function WatchPage() {
               {year} | {movie.quality} | {playbackLabel}
             </p>
           </div>
-          <span className="hidden rounded-full border border-slate-500/40 px-3 py-1 text-xs text-slate-300 sm:inline-flex">
-            {currentSource.name}
-          </span>
         </div>
       </header>
 
@@ -166,42 +163,12 @@ export default function WatchPage() {
         </section>
 
         <aside className="space-y-4">
-          <div className="rounded-xl border border-white/10 bg-[#16202a] p-4">
-            <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-300">Sources</h2>
-            <div className="space-y-2">
-              {movie.sources.map((source) => {
-                const query = new URLSearchParams();
-                query.set('source', source.id);
-                if (episode) {
-                  query.set('episode', episode);
-                }
-
-                return (
-                  <Link
-                    key={source.id}
-                    href={`/watch/${movie.slug || movie.id}?${query.toString()}`}
-                    className={`flex items-center justify-between rounded-lg border px-3 py-2 text-sm transition-colors ${
-                      source.id === currentSource.id
-                        ? 'border-[#00a8e1] bg-[#00a8e1]/20 text-white'
-                        : 'border-white/10 bg-[#111a22] text-slate-300 hover:border-slate-400/40'
-                    }`}
-                  >
-                    <span className="truncate">Server {source.priority}</span>
-                    <span className="rounded bg-black/40 px-2 py-0.5 text-[11px] uppercase">{source.type}</span>
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
-
           <div className="rounded-xl border border-white/10 bg-[#16202a] p-4 text-sm text-slate-300">
-            <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-300">Playback Info</h3>
+            <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-300">Info</h3>
             <div className="space-y-1.5">
               <p>Title: {movie.title}</p>
               <p>Year: {year}</p>
               <p>Quality: {movie.quality}</p>
-              <p>Server: {currentSource.priority}</p>
-              <p>Type: {currentSource.type.toUpperCase()}</p>
               {episode && <p>Episode: {episode}</p>}
             </div>
           </div>

@@ -446,7 +446,6 @@ export default function MovieDetailClient() {
                     >
                       {source.type.toUpperCase()}
                     </span>
-                    <span className="text-sm font-medium text-slate-100">Server {source.priority}</span>
                   </div>
                   <Link
                     href={`/watch/${movie.slug || movie.id}?source=${source.id}`}
