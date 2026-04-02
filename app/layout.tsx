@@ -2,12 +2,13 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import BottomNav from "@/components/BottomNav";
+import Provider from "@/components/Provider";
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
-  themeColor: "#dc2626",
+  themeColor: "#e50914",
 };
 
 export const metadata: Metadata = {
@@ -37,10 +38,12 @@ export default function RootLayout({
   return (
     <html lang="en" className="scroll-smooth">
       <head />
-      <body className="bg-zinc-950 text-zinc-100 min-h-screen antialiased">
-        <Navbar />
-        {children}
-        <BottomNav />
+      <body className="bg-[#141414] text-white min-h-screen antialiased">
+        <Provider>
+          <Navbar />
+          {children}
+          <BottomNav />
+        </Provider>
       </body>
     </html>
   );

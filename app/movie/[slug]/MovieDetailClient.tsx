@@ -43,6 +43,8 @@ function readFavorites(): FavoriteItem[] {
   }
 }
 
+type TabType = 'overview' | 'episodes' | 'trailers' | 'more';
+
 export default function MovieDetailClient() {
   const params = useParams();
   const slugParam = Array.isArray(params.slug) ? params.slug[0] : params.slug;
@@ -54,6 +56,7 @@ export default function MovieDetailClient() {
   const [isFavorite, setIsFavorite] = useState(false);
   const [selectedSeason, setSelectedSeason] = useState(1);
   const [similarMedia, setSimilarMedia] = useState<Media[]>([]);
+  const [activeTab, setActiveTab] = useState<TabType>('overview');
 
   useEffect(() => {
     let isMounted = true;
@@ -187,13 +190,13 @@ export default function MovieDetailClient() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0f171e]">
+      <div className="min-h-screen bg-[#141414]">
         <div className="animate-pulse">
-          <div className="h-[70vh] bg-[#1c2833]" />
-          <div className="mx-auto max-w-7xl px-4 py-10 space-y-5">
-            <div className="h-12 w-2/5 rounded bg-[#1c2833]" />
-            <div className="h-5 w-3/5 rounded bg-[#1c2833]" />
-            <div className="h-5 w-1/2 rounded bg-[#1c2833]" />
+          <div className="h-[70vh] bg-[#1a1a1a]" />
+          <div className="mx-auto max-w-7xl px-12 py-10 space-y-5">
+            <div className="h-12 w-2/5 rounded bg-[#1a1a1a]" />
+            <div className="h-5 w-3/5 rounded bg-[#1a1a1a]" />
+            <div className="h-5 w-1/2 rounded bg-[#1a1a1a]" />
           </div>
         </div>
       </div>
@@ -202,10 +205,10 @@ export default function MovieDetailClient() {
 
   if (!movie) {
     return (
-      <div className="min-h-screen bg-[#0f171e] flex items-center justify-center">
+      <div className="min-h-screen bg-[#141414] flex items-center justify-center">
         <div className="text-center">
-          <p className="text-slate-300 text-lg">{error || 'Content not found'}</p>
-          <Link href="/" className="mt-4 inline-block text-sky-400 hover:text-sky-300 transition-colors">
+          <p className="text-gray-300 text-lg">{error || 'Content not found'}</p>
+          <Link href="/" className="mt-4 inline-block text-[#e50914] hover:text-[#b20710] transition-colors">
             Go back home
           </Link>
         </div>
@@ -219,297 +222,241 @@ export default function MovieDetailClient() {
     : movieData?.runtime || 'N/A';
 
   return (
-    <main className="min-h-screen bg-[#0f171e] text-white">
-      <section className="relative w-full overflow-hidden" style={{ aspectRatio: '16/9', minHeight: '400px', maxHeight: '65vh' }}>
-        <div className="absolute inset-0">
-          <Image
-            src={movie.backdrop}
-            alt={movie.title}
-            fill
-            priority
-            className="object-cover"
-            sizes="100vw"
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#0f171e]/20 via-[#0f171e]/50 to-[#0f171e]" />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#0f171e] via-[#0f171e]/60 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0f171e] via-transparent to-transparent" />
+    <main className="min-h-screen bg-[#141414] text-white pt-16 md:pt-20">
+      <section className="px-4 md:px-12 py-6 md:py-8">
+        <div className="flex justify-between items-center mb-6 md:mb-8">
+          <div className="flex gap-3 md:gap-8 items-center">
+            <Link 
+              href="/" 
+              className="flex items-center text-gray-300 hover:text-white transition-colors"
+            >
+              <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              <span className="text-sm ml-1 md:ml-2">Back</span>
+            </Link>
+            <div className="hidden md:flex gap-8">
+              <Link href="/" className="text-sm text-gray-400 hover:text-white transition-colors">Browse</Link>
+              <Link href="/" className="text-sm text-gray-400 hover:text-white transition-colors">Search</Link>
+            </div>
+          </div>
+          <div className="flex gap-4 items-center">
+            <button 
+              onClick={toggleFavorite}
+              className={`text-2xl ${isFavorite ? 'text-[#e50914]' : 'text-gray-400'}`}
+            >
+              {isFavorite ? '♥' : '♡'}
+            </button>
+          </div>
         </div>
 
-        <div className="relative z-10 mx-auto flex h-full max-w-7xl flex-col justify-end px-4 pb-6 sm:px-6 lg:px-8 pt-28">
-          <div className="grid gap-8 lg:grid-cols-[280px_1fr] lg:items-end">
-            <div className="hidden lg:block order-2">
-              <div className="overflow-hidden rounded-xl border border-white/20 shadow-2xl shadow-black/80">
-                <Image
-                  src={movie.poster}
-                  alt={`${movie.title} poster`}
-                  width={280}
-                  height={420}
-                  className="h-auto w-full object-cover"
-                />
-              </div>
-            </div>
+        <div className="grid grid-cols-1 md:grid-cols-[320px_1fr] gap-6 md:gap-12 items-start">
+          <div className="relative h-[280px] md:h-[520px] rounded-sm overflow-hidden bg-zinc-900">
+            <Image
+              src={movie.poster}
+              alt={movie.title}
+              fill
+              className="object-cover"
+              priority
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
+            
+            {primarySource && (
+              <Link 
+                href={`/watch/${movie.slug || movie.id}?source=${primarySource.id}`}
+                className="absolute right-4 md:right-6 top-1/2 -translate-y-1/2 bg-[#e50914] w-12 h-12 md:w-16 md:h-16 flex items-center justify-center text-xl md:text-3xl rounded-full hover:bg-[#b20710] transition-colors"
+              >
+                ▶
+              </Link>
+            )}
 
-            <div className="max-w-3xl order-1">
-              <div className="flex items-center gap-3 mb-3">
-                <span className="flex items-center gap-1 rounded border border-white/30 bg-black/40 px-2.5 py-0.5 text-xs font-medium text-white backdrop-blur-sm">
-                  <svg className="w-3 h-3 text-yellow-400" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 17.27L18.18 21 16.54 13.97 22 9.24 14.81 8.63 12 2 9.19 8.63 2 9.24 7.46 13.97 5.82 21z" />
-                  </svg>
-                  {movie.rating.toFixed(1)}
-                </span>
-                <span className="rounded border border-white/30 bg-black/40 px-2.5 py-0.5 text-xs font-medium text-white backdrop-blur-sm">
-                  {year}
-                </span>
-                {movie.quality && (
-                  <span className="rounded border border-[#00a8e1] bg-[#00a8e1]/20 px-2.5 py-0.5 text-xs font-semibold text-[#00a8e1]">
-                    {movie.quality}
-                  </span>
-                )}
-                {isSeries && (
-                  <span className="rounded bg-[#00a8e1]/20 px-2.5 py-0.5 text-xs font-semibold text-[#00a8e1]">
-                    Series
-                  </span>
-                )}
-              </div>
-
-              <h1 className="mb-3 text-3xl font-bold leading-tight drop-shadow-lg sm:text-4xl lg:text-5xl">
-                {movie.title}
-              </h1>
-
-              <p className="mb-4 line-clamp-2 text-sm leading-relaxed text-gray-200 sm:text-base drop-shadow-md">
+            <div className="absolute bottom-4 md:bottom-6 left-4 md:left-6 right-4 md:right-6">
+              {isSeries && (
+                <>
+                  <p className="text-xs md:text-sm font-medium">Resume</p>
+                  <p className="text-xs md:text-sm mt-1 text-gray-300">
+                    S{selectedSeason}:E{Math.min(1, totalEpisodes)}
+                  </p>
+                  <div className="h-[2px] bg-white/30 mt-2 md:mt-4 relative">
+                    <div className="absolute left-0 top-0 h-full w-1/3 bg-white" />
+                  </div>
+                </>
+              )}
+              <p className="text-[10px] md:text-xs text-gray-400 mt-2 md:mt-4 leading-4 line-clamp-2 md:line-clamp-3">
                 {movie.overview || 'No description available.'}
               </p>
-
-              <div className="flex flex-wrap gap-2">
-                {primarySource && (
-                  <Link
-                    href={`/watch/${movie.slug || movie.id}?source=${primarySource.id}`}
-                    className="group flex items-center gap-2 rounded-sm bg-white px-5 py-2 text-sm font-semibold text-black transition-all hover:bg-gray-200"
-                  >
-                    <svg className="h-4 w-4 transition-transform group-hover:scale-110" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M8 5v14l11-7z" />
-                    </svg>
-                    Play
-                  </Link>
-                )}
-                <button
-                  onClick={() => {
-                    const details = document.getElementById('details-section');
-                    details?.scrollIntoView({ behavior: 'smooth' });
-                  }}
-                  className="flex items-center gap-2 rounded-sm border border-white/40 bg-white/10 px-5 py-2 text-sm font-semibold text-white backdrop-blur-sm transition-all hover:bg-white/20"
-                >
-                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  More info
-                </button>
-                <button
-                  onClick={toggleFavorite}
-                  className="flex items-center gap-2 rounded-sm border border-white/40 bg-white/10 px-3 py-2 text-sm font-semibold text-white backdrop-blur-sm transition-all hover:bg-white/20"
-                >
-                  <svg
-                    className={`h-4 w-4 ${isFavorite ? 'text-red-500' : ''}`}
-                    fill={isFavorite ? 'currentColor' : 'none'}
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-                    />
-                  </svg>
-                </button>
-              </div>
-
-              <div className="mt-3 flex flex-wrap gap-2">
-                {movie.genres.map((genre) => (
-                  <span
-                    key={genre}
-                    className="rounded bg-white/10 px-2.5 py-0.5 text-xs font-medium text-white backdrop-blur-sm"
-                  >
-                    {genre}
-                  </span>
-                ))}
-                <span className="rounded bg-white/10 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm">
-                  {subHeading}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {similarMedia.length > 0 && (
-        <section className="relative overflow-hidden">
-          <div className="absolute inset-0">
-            {similarMedia[0]?.backdrop && (
-              <Image
-                src={similarMedia[0].backdrop}
-                alt="Similar content"
-                fill
-                className="object-cover opacity-20"
-              />
-            )}
-            <div className="absolute inset-0 bg-gradient-to-b from-[#0f171e] via-[#0f171e]/95 to-[#0f171e]" />
-          </div>
-          
-          <div className="relative mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-            <h2 className="text-xl font-semibold sm:text-2xl mb-6">You Might Also Like</h2>
-            <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4">
-              {similarMedia.map((item) => (
-                <Link
-                  key={item.id}
-                  href={`/movie/${item.slug || item.id}`}
-                  className="group shrink-0 w-[140px] sm:w-[180px]"
-                >
-                  <div className="relative aspect-[2/3] rounded-lg overflow-hidden border border-white/10 group-hover:border-[#00a8e1] transition-colors">
-                    <Image
-                      src={item.poster}
-                      alt={item.title}
-                      fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-                    <div className="absolute bottom-0 left-0 right-0 p-2">
-                      <p className="text-xs font-medium truncate">{item.title}</p>
-                      <p className="text-[10px] text-slate-400">★ {item.rating}</p>
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-
-      <section id="details-section" className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[1.1fr_1.2fr] lg:px-8">
-        <div className="space-y-6">
-          <div className="rounded-xl border border-white/10 bg-[#19232d] p-5 sm:p-6">
-            <h2 className="text-xl font-semibold">Details</h2>
-            <div className="mt-5 grid grid-cols-2 gap-4 text-sm sm:grid-cols-3">
-              <div>
-                <p className="text-slate-400">Release</p>
-                <p className="mt-1 font-medium text-slate-100">{movie.releaseDate}</p>
-              </div>
-              <div>
-                <p className="text-slate-400">Quality</p>
-                <p className="mt-1 font-medium text-slate-100">{movie.quality}</p>
-              </div>
-              <div>
-                <p className="text-slate-400">Rating</p>
-                <p className="mt-1 font-medium text-slate-100">{movie.rating}</p>
-              </div>
-              <div>
-                <p className="text-slate-400">Audio</p>
-                <p className="mt-1 font-medium text-slate-100">{movie.audioLanguages.join(', ')}</p>
-              </div>
-              <div>
-                <p className="text-slate-400">Subtitles</p>
-                <p className="mt-1 font-medium text-slate-100">{movie.subtitleLanguages.join(', ')}</p>
-              </div>
-              <div>
-                <p className="text-slate-400">{isSeries ? 'Seasons' : 'Runtime'}</p>
-                <p className="mt-1 font-medium text-slate-100">{subHeading}</p>
-              </div>
             </div>
           </div>
 
-          <div className="rounded-xl border border-white/10 bg-[#19232d] p-5 sm:p-6">
-            <h3 className="text-lg font-semibold">About</h3>
-            <p className="mt-3 text-sm leading-relaxed text-slate-200 sm:text-base">
-              {movie.overview || 'No description available.'}
-            </p>
-          </div>
-        </div>
-
-        <div className="space-y-6">
-          <div className="rounded-xl border border-white/10 bg-[#19232d] p-5 sm:p-6">
-            <h2 className="text-xl font-semibold">Watch Options</h2>
-            <div className="mt-4 space-y-3">
-              {movie.sources.map((source: Source) => (
-                <div
-                  key={source.id}
-                  className="flex flex-col gap-3 rounded-lg border border-white/10 bg-[#111a22] p-4 sm:flex-row sm:items-center sm:justify-between"
-                >
-                  <div className="flex items-center gap-3">
-                    <span
-                      className={`rounded px-2 py-1 text-xs font-semibold ${
-                        source.type === 'm3u8'
-                          ? 'bg-sky-500/20 text-sky-300'
-                          : source.type === 'mp4'
-                            ? 'bg-emerald-500/20 text-emerald-300'
-                            : 'bg-violet-500/20 text-violet-300'
-                      }`}
-                    >
-                      {source.type.toUpperCase()}
-                    </span>
-                  </div>
-                  <Link
-                    href={`/watch/${movie.slug || movie.id}?source=${source.id}`}
-                    className="inline-flex items-center justify-center gap-2 rounded-md bg-[#00a8e1] px-4 py-2 text-sm font-semibold text-[#051019] hover:bg-[#25baf0] transition-colors"
-                  >
-                    <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M8 5v14l11-7z" />
-                    </svg>
-                    Watch
-                  </Link>
+          <div>
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-gray-400 tracking-wide text-xs md:text-sm">TeluguDub {isSeries ? 'ORIGINAL' : 'MOVIE'}</p>
+                <h1 className="text-2xl md:text-4xl lg:text-5xl font-bold leading-none mt-2">{movie.title}</h1>
+                <div className="flex gap-2 md:gap-4 text-xs md:text-sm text-gray-400 mt-2 md:mt-4 flex-wrap">
+                  <span>{year}</span>
+                  <span>|</span>
+                  {isSeries ? (
+                    <>
+                      <span>{totalSeasons} Season{totalSeasons === 1 ? '' : 's'}</span>
+                      <span>|</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>{movieData?.runtime || 'N/A'}</span>
+                      <span>|</span>
+                    </>
+                  )}
+                  <span>{movie.quality || 'HD'}</span>
                 </div>
-              ))}
+              </div>
+              <div className="text-xl md:text-3xl font-light flex items-center gap-1 md:gap-2">
+                <span>{movie.rating.toFixed(1)}</span>
+                <span className="text-yellow-400">★</span>
+              </div>
             </div>
-          </div>
 
-          {isSeries && (
-            <div className="rounded-xl border border-white/10 bg-[#19232d] p-5 sm:p-6">
-              <h3 className="text-lg font-semibold">Episodes</h3>
-              {totalSeasons > 1 && (
-                <div className="mt-4 flex gap-2 overflow-x-auto pb-1">
-                  {Array.from({ length: totalSeasons }, (_, index) => index + 1).map((season) => (
-                    <button
-                      key={season}
-                      onClick={() => setSelectedSeason(season)}
-                      className={`whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
-                        selectedSeason === season
-                          ? 'bg-[#00a8e1] text-[#051019]'
-                          : 'bg-[#111a22] text-slate-300 hover:text-white'
-                      }`}
-                    >
-                      Season {season}
-                    </button>
-                  ))}
+            <div className="flex gap-3 md:gap-10 mt-4 md:mt-8 text-xs md:text-sm uppercase tracking-wide text-gray-400 overflow-x-auto">
+              <button 
+                onClick={() => setActiveTab('overview')}
+                className={`pb-2 transition-colors whitespace-nowrap ${activeTab === 'overview' ? 'text-white border-b-2 border-[#e50914]' : 'hover:text-white'}`}
+              >
+                Overview
+              </button>
+              {isSeries && (
+                <button 
+                  onClick={() => setActiveTab('episodes')}
+                  className={`pb-2 transition-colors whitespace-nowrap ${activeTab === 'episodes' ? 'text-white border-b-2 border-[#e50914]' : 'hover:text-white'}`}
+                >
+                  Episodes
+                </button>
+              )}
+              <button 
+                onClick={() => setActiveTab('trailers')}
+                className={`pb-2 transition-colors whitespace-nowrap ${activeTab === 'trailers' ? 'text-white border-b-2 border-[#e50914]' : 'hover:text-white'}`}
+              >
+                Trailers & More
+              </button>
+              <button 
+                onClick={() => setActiveTab('more')}
+                className={`pb-2 transition-colors ${activeTab === 'more' ? 'text-white border-b-2 border-[#e50914]' : 'hover:text-white'}`}
+              >
+                More Like This
+              </button>
+            </div>
+
+            <div className="mt-4 md:mt-8">
+              {activeTab === 'overview' && (
+                <>
+                  <p className="text-xs md:text-sm text-gray-300 max-w-2xl leading-5 md:leading-7">
+                    {movie.overview || 'No description available.'}
+                  </p>
+
+                  <div className="mt-4 md:mt-8 space-y-2 md:space-y-3 text-xs md:text-sm">
+                    <p>
+                      <span className="text-gray-500 w-20 md:w-24 inline-block">Genre</span>
+                      <span className="text-gray-300">{movie.genres.join(', ')}</span>
+                    </p>
+                    {isSeries && (
+                      <p>
+                        <span className="text-gray-500 w-20 md:w-24 inline-block">Seasons</span>
+                        <span className="text-gray-300">{totalSeasons}</span>
+                      </p>
+                    )}
+                  </div>
+                </>
+              )}
+
+              {activeTab === 'episodes' && isSeries && (
+                <div className="space-y-4">
+                  {totalSeasons > 1 && (
+                    <div className="flex gap-2 overflow-x-auto pb-2">
+                      {Array.from({ length: totalSeasons }, (_, index) => index + 1).map((season) => (
+                        <button
+                          key={season}
+                          onClick={() => setSelectedSeason(season)}
+                          className={`whitespace-nowrap rounded-sm px-3 md:px-4 py-1.5 text-xs md:text-sm font-medium transition-colors ${
+                            selectedSeason === season
+                              ? 'bg-[#e50914] text-white'
+                              : 'bg-[#2a2a2a] text-gray-300 hover:text-white'
+                          }`}
+                        >
+                          Season {season}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
+                    {Array.from({ length: totalEpisodes || 0 }, (_, index) => index + 1).map((episode) => (
+                      <div key={episode} className="bg-[#2a2a2a] rounded overflow-hidden">
+                        <div className="relative h-20 md:h-24">
+                          <Image
+                            src={movie.backdrop || movie.poster}
+                            alt={`Episode ${episode}`}
+                            fill
+                            className="object-cover"
+                          />
+                          {primarySource && (
+                            <Link 
+                              href={`/watch/${movie.slug || movie.id}?source=${primarySource.id}&episode=${episode}`}
+                              className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 hover:opacity-100 transition-opacity"
+                            >
+                              <span className="bg-[#e50914] w-8 h-8 md:w-10 md:h-10 flex items-center justify-center rounded-full text-sm md:text-lg">▶</span>
+                            </Link>
+                          )}
+                        </div>
+                        <div className="p-3">
+                          <p className="text-xs text-gray-400">S{selectedSeason}:E{episode}</p>
+                          <p className="text-sm mt-1">Episode {episode}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  {totalEpisodes === 0 && (
+                    <p className="text-sm text-gray-400">Episodes are not configured yet.</p>
+                  )}
                 </div>
               )}
 
-              <div className="mt-4 space-y-2 max-h-[420px] overflow-y-auto pr-1">
-                {Array.from({ length: totalEpisodes || 0 }, (_, index) => index + 1).map((episode) => (
-                  <div
-                    key={episode}
-                    className="flex items-center justify-between rounded-lg border border-white/10 bg-[#111a22] px-4 py-3"
-                  >
-                    <p className="text-sm text-slate-200">
-                      Episode {episode}
-                      {totalSeasons > 1 ? ` | Season ${selectedSeason}` : ''}
-                    </p>
-                    {primarySource && (
-                      <Link
-                        href={`/watch/${movie.slug || movie.id}?source=${primarySource.id}&episode=${episode}`}
-                        className="rounded-md bg-[#00a8e1] px-3 py-1.5 text-xs font-semibold text-[#051019] hover:bg-[#25baf0] transition-colors"
-                      >
-                        Play
-                      </Link>
-                    )}
+              {activeTab === 'trailers' && (
+                <div className="flex gap-3 md:gap-4 overflow-x-auto pb-2">
+                  <div className="shrink-0 w-[160px] md:w-[200px] lg:w-[280px]">
+                    <div className="relative h-24 md:h-32 lg:h-40 bg-[#2a2a2a] rounded flex items-center justify-center">
+                      <span className="text-3xl md:text-4xl">▶</span>
+                    </div>
+                    <p className="text-xs md:text-sm mt-2 text-gray-300">Trailer</p>
                   </div>
-                ))}
-                {totalEpisodes === 0 && (
-                  <p className="rounded-lg border border-white/10 bg-[#111a22] px-4 py-3 text-sm text-slate-400">
-                    Episodes are not configured yet.
-                  </p>
-                )}
-              </div>
+                </div>
+              )}
+
+              {activeTab === 'more' && similarMedia.length > 0 && (
+                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-6 gap-2 md:gap-4">
+                  {similarMedia.map((item) => (
+                    <Link
+                      key={item.id}
+                      href={`/movie/${item.slug || item.id}`}
+                      className="group"
+                    >
+                      <div className="relative aspect-[2/3] rounded-md overflow-hidden bg-[#2a2a2a] transition-all duration-300 group-hover:scale-105">
+                        <Image
+                          src={item.poster}
+                          alt={item.title}
+                          fill
+                          className="object-cover"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                        <div className="absolute bottom-1 md:bottom-2 left-2 right-2">
+                          <p className="text-[10px] md:text-xs font-medium truncate text-white">{item.title}</p>
+                          <p className="text-[9px] md:text-[10px] text-gray-400">★ {item.rating.toFixed(1)}</p>
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
             </div>
-          )}
+          </div>
         </div>
       </section>
     </main>

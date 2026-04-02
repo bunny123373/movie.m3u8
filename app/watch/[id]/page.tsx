@@ -12,17 +12,17 @@ type Media = MediaItem | MediaSeries;
 
 function WatchSkeleton() {
   return (
-    <div className="min-h-screen bg-[#0f171e] text-white">
+    <div className="min-h-screen bg-[#141414] text-white">
       <div className="animate-pulse">
-        <div className="h-16 border-b border-white/10 bg-[#16202a]" />
+        <div className="h-14 border-b border-white/10 bg-[#1a1a1a]" />
         <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-          <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
-            <div className="aspect-video rounded-xl border border-white/10 bg-[#1b2530]" />
-            <div className="space-y-3 rounded-xl border border-white/10 bg-[#16202a] p-4">
-              <div className="h-5 w-1/2 rounded bg-[#1b2530]" />
-              <div className="h-10 w-full rounded bg-[#1b2530]" />
-              <div className="h-10 w-full rounded bg-[#1b2530]" />
-              <div className="h-10 w-full rounded bg-[#1b2530]" />
+          <div className="grid gap-6 lg:grid-cols-[1fr_350px]">
+            <div className="aspect-video rounded-lg bg-[#1a1a1a]" />
+            <div className="space-y-3 rounded-lg bg-[#1a1a1a] p-4">
+              <div className="h-6 w-1/2 rounded bg-[#2a2a2a]" />
+              <div className="h-12 w-full rounded bg-[#2a2a2a]" />
+              <div className="h-12 w-full rounded bg-[#2a2a2a]" />
+              <div className="h-12 w-full rounded bg-[#2a2a2a]" />
             </div>
           </div>
         </div>
@@ -84,10 +84,10 @@ export default function WatchPage() {
 
   if (!movie) {
     return (
-      <div className="min-h-screen bg-[#0f171e] flex items-center justify-center">
-        <div className="rounded-xl border border-white/10 bg-[#16202a] px-8 py-10 text-center">
-          <p className="text-slate-200 text-lg">Content not found</p>
-          <Link href="/" className="mt-4 inline-block text-[#00a8e1] hover:text-[#25baf0] transition-colors">
+      <div className="min-h-screen bg-[#141414] flex items-center justify-center">
+        <div className="rounded-lg border border-white/10 bg-[#1a1a1a] px-8 py-10 text-center">
+          <p className="text-gray-200 text-lg">Content not found</p>
+          <Link href="/" className="mt-4 inline-block text-[#e50914] hover:text-[#b20710] transition-colors">
             Go home
           </Link>
         </div>
@@ -101,12 +101,12 @@ export default function WatchPage() {
 
   if (!currentSource) {
     return (
-      <div className="min-h-screen bg-[#0f171e] flex items-center justify-center">
-        <div className="rounded-xl border border-white/10 bg-[#16202a] px-8 py-10 text-center">
-          <p className="text-slate-200 text-lg">No sources available</p>
+      <div className="min-h-screen bg-[#141414] flex items-center justify-center">
+        <div className="rounded-lg border border-white/10 bg-[#1a1a1a] px-8 py-10 text-center">
+          <p className="text-gray-200 text-lg">No sources available</p>
           <Link
             href={`/movie/${movie.slug || movie.id}`}
-            className="mt-4 inline-block text-[#00a8e1] hover:text-[#25baf0] transition-colors"
+            className="mt-4 inline-block text-[#e50914] hover:text-[#b20710] transition-colors"
           >
             Back to details
           </Link>
@@ -119,13 +119,13 @@ export default function WatchPage() {
   const playbackLabel = episode ? `Episode ${episode}` : 'Now Playing';
 
   return (
-    <main className="min-h-screen bg-[#0f171e] text-white">
-      <header className="sticky top-0 z-20 border-b border-white/10 bg-[#101922]/90 backdrop-blur-md">
+    <main className="min-h-screen bg-[#141414] text-white">
+      <header className="sticky top-0 z-20 border-b border-white/10 bg-[#1a1a1a]/95 backdrop-blur-md">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
           <div className="min-w-0">
             <Link
               href={`/movie/${movie.slug || movie.id}`}
-              className="inline-flex items-center gap-2 text-sm text-slate-300 hover:text-white transition-colors"
+              className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors"
             >
               <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -133,16 +133,16 @@ export default function WatchPage() {
               Back to details
             </Link>
             <h1 className="truncate text-base font-semibold text-white sm:text-lg">{movie.title}</h1>
-            <p className="truncate text-xs text-slate-400 sm:text-sm">
-              {year} | {movie.quality} | {playbackLabel}
+            <p className="truncate text-xs text-gray-500 sm:text-sm">
+              {year} • {movie.quality} • {playbackLabel}
             </p>
           </div>
         </div>
       </header>
 
-      <div className="mx-auto grid max-w-7xl gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[1fr_320px] lg:px-8">
+      <div className="mx-auto grid max-w-7xl gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[1fr_350px] lg:px-8">
         <section className="space-y-4">
-          <div className="overflow-hidden rounded-xl border border-white/10 bg-black shadow-2xl shadow-black/40">
+          <div className="overflow-hidden rounded-lg bg-black shadow-2xl shadow-black/50">
             {currentSource.type === 'embed' ? (
               <div className="aspect-video">
                 <iframe
@@ -157,19 +157,41 @@ export default function WatchPage() {
             )}
           </div>
 
-          <div className="rounded-xl border border-white/10 bg-[#16202a] p-4">
-            <p className="text-sm text-slate-300">{movie.overview || 'No overview available.'}</p>
+          <div className="rounded-lg border border-white/10 bg-[#1a1a1a] p-4">
+            <div className="flex items-center gap-3 mb-3">
+              <span className="text-lg font-bold text-white">{movie.title}</span>
+              <span className="rounded bg-[#e50914] px-2 py-0.5 text-xs font-bold text-white">{movie.quality}</span>
+            </div>
+            <p className="text-sm text-gray-400 leading-relaxed">{movie.overview || 'No overview available.'}</p>
           </div>
         </section>
 
         <aside className="space-y-4">
-          <div className="rounded-xl border border-white/10 bg-[#16202a] p-4 text-sm text-slate-300">
-            <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-300">Info</h3>
-            <div className="space-y-1.5">
-              <p>Title: {movie.title}</p>
-              <p>Year: {year}</p>
-              <p>Quality: {movie.quality}</p>
-              {episode && <p>Episode: {episode}</p>}
+          <div className="rounded-lg border border-white/10 bg-[#1a1a1a] p-4 text-sm">
+            <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-gray-400">Info</h3>
+            <div className="space-y-3">
+              <div className="flex justify-between">
+                <span className="text-gray-500">Title</span>
+                <span className="text-gray-200 text-right max-w-[180px] truncate">{movie.title}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">Year</span>
+                <span className="text-gray-200">{year}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">Quality</span>
+                <span className="text-gray-200">{movie.quality}</span>
+              </div>
+              {episode && (
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Episode</span>
+                  <span className="text-gray-200">Episode {episode}</span>
+                </div>
+              )}
+              <div className="flex justify-between">
+                <span className="text-gray-500">Rating</span>
+                <span className="text-yellow-500">★ {movie.rating.toFixed(1)}</span>
+              </div>
             </div>
           </div>
         </aside>

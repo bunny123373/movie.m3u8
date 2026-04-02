@@ -99,12 +99,12 @@ function readWatchProgress(): WatchProgressMap {
 
 function HomeSkeleton() {
   return (
-    <div className="min-h-screen bg-[#0f171e]">
+    <div className="min-h-screen bg-[#141414]">
       <div className="animate-pulse">
-        <div className="h-[62vh] border-b border-white/10 bg-[#1b2530]" />
+        <div className="h-[62vh] border-b border-white/10 bg-[#1a1a1a]" />
         <div className="mx-auto max-w-7xl space-y-10 px-4 py-10 sm:px-6 lg:px-8">
           <div className="space-y-3">
-            <div className="h-7 w-56 rounded bg-[#1b2530]" />
+            <div className="h-7 w-56 rounded bg-[#1a1a1a]" />
             <div className="flex gap-3 overflow-hidden">
               {Array.from({ length: 5 }, (_, index) => (
                 <MovieCardSkeleton key={index} className="w-[220px] sm:w-[260px] shrink-0" />
@@ -112,7 +112,7 @@ function HomeSkeleton() {
             </div>
           </div>
           <div className="space-y-3">
-            <div className="h-7 w-44 rounded bg-[#1b2530]" />
+            <div className="h-7 w-44 rounded bg-[#1a1a1a]" />
             <div className="flex gap-3 overflow-hidden">
               {Array.from({ length: 5 }, (_, index) => (
                 <MovieCardSkeleton key={`second-${index}`} className="w-[220px] sm:w-[260px] shrink-0" />
@@ -234,10 +234,10 @@ export default function HomePage() {
 
   if (!featured) {
     return (
-      <div className="min-h-screen bg-[#0f171e] flex items-center justify-center">
-        <div className="rounded-xl border border-white/10 bg-[#16202a] px-8 py-10 text-center">
-          <p className="text-slate-200 text-lg">No content available</p>
-          <Link href="/admin" className="mt-4 inline-block text-[#00a8e1] hover:text-[#25baf0] transition-colors">
+      <div className="min-h-screen bg-[#141414] flex items-center justify-center">
+        <div className="rounded-lg border border-white/10 bg-[#1a1a1a] px-8 py-10 text-center">
+          <p className="text-gray-200 text-lg">No content available</p>
+          <Link href="/admin" className="mt-4 inline-block text-[#e50914] hover:text-[#b20710] transition-colors">
             Go to Admin
           </Link>
         </div>
@@ -246,13 +246,27 @@ export default function HomePage() {
   }
 
   const year = featured.releaseDate.split('-')[0];
-  const isFeaturedSeries = featured.mediaType === 'series';
   const featuredProgress = progressMap[featured.id];
 
-  return (
-    <main className="min-h-screen bg-[#0f171e] text-white pb-safe md:pb-0">
+  const trendingWithNumbers = trendingTmdb.slice(0, 10).map((item, idx) => ({ ...item, rank: idx + 1 }));
+  const topRatedMovies = [...movies].sort((a, b) => b.rating - a.rating).slice(0, 10);
+  const topRatedSeries = [...series].sort((a, b) => b.rating - a.rating).slice(0, 10);
+  const continueWatchingItems = continueWatching.slice(0, 10);
 
-      <section className="relative w-full overflow-hidden" style={{ height: '65vh', minHeight: '500px' }}>
+  const getGenreLabel = (genres: string[]) => {
+    if (genres.includes('Action') || genres.includes('Adventure')) return 'Action & Adventure';
+    if (genres.includes('Comedy')) return 'Comedies';
+    if (genres.includes('Drama')) return 'Dramas';
+    if (genres.includes('Thriller') || genres.includes('Horror')) return 'Thrillers';
+    if (genres.includes('Science Fiction') || genres.includes('Fantasy')) return 'Sci-Fi & Fantasy';
+    if (genres.includes('Romance')) return 'Romances';
+    if (genres.includes('Animation')) return 'Anime';
+    return genres[0] || 'Trending';
+  };
+
+  return (
+    <main className="min-h-screen bg-[#141414] text-white pb-safe md:pb-0 pt-16 md:pt-20">
+      <section className="relative h-[55vh] md:h-[560px] lg:h-[640px] rounded-2xl md:rounded-3xl overflow-hidden mx-2 md:mx-4 mt-2">
         <div className="absolute inset-0">
           <Image
             src={featured.backdrop || featured.poster || '/placeholder.jpg'}
@@ -262,176 +276,243 @@ export default function HomePage() {
             className="object-cover"
             sizes="100vw"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#0f171e] via-[#0f171e]/80 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0f171e] via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/50 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#141414] via-transparent to-transparent" />
         </div>
 
-        <div className="relative z-10 mx-auto flex h-full max-w-7xl items-center px-4 sm:px-6 lg:px-8">
-          <div className="max-w-xl">
-            <h1 className="mb-3 text-4xl font-bold leading-tight sm:text-5xl lg:text-6xl">
-              {featured.title}
-            </h1>
+        <div className="absolute bottom-0 left-0 right-0 h-24 md:h-32 bg-gradient-to-t from-[#141414] to-transparent" />
 
-            <div className="mb-4 flex items-center gap-3 text-sm">
-              <span className="text-gray-300">{year}</span>
-              <span className="text-gray-500">|</span>
-              <span className="flex items-center gap-1 text-yellow-400">
-                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 17.27L18.18 21 16.54 13.97 22 9.24 14.81 8.63 12 2 9.19 8.63 2 9.24 7.46 13.97 5.82 21z" />
-                </svg>
-                {featured.rating.toFixed(1)}
-              </span>
-              {'runtime' in featured && featured.runtime && (
-                <>
-                  <span className="text-gray-500">|</span>
-                  <span className="text-gray-300">{featured.runtime}</span>
-                </>
-              )}
-            </div>
-
-            <p className="mb-6 line-clamp-3 text-base leading-relaxed text-gray-300">
-              {featured.overview}
-            </p>
-
-            <div className="flex flex-wrap gap-3">
-              <Link
-                className="inline-flex items-center gap-2 rounded-sm bg-white px-6 py-2.5 text-sm font-semibold text-black transition-colors hover:bg-gray-200"
-                href={`/watch/${featured.slug || featured.id}?source=${featured.sources[0]?.id}`}
-              >
-                <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M8 5v14l11-7z" />
-                </svg>
-                {featuredProgress ? 'Resume' : 'Play'}
-              </Link>
-              <Link
-                className="inline-flex items-center gap-2 rounded-sm border border-white/40 bg-white/10 px-6 py-2.5 text-sm font-semibold text-white backdrop-blur-sm transition-colors hover:bg-white/20"
-                href={`/movie/${featured.slug || featured.id}`}
-              >
-                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                More Info
-              </Link>
-            </div>
+        <div className="absolute left-3 md:left-10 bottom-8 md:bottom-16 right-3 md:right-auto">
+          <div className="flex flex-wrap gap-2 md:gap-3 text-[10px] md:text-xs text-gray-200 mb-2 md:mb-3">
+            {featured.genres.slice(0, 3).map((genre) => (
+              <span key={genre}>{genre.toUpperCase()}</span>
+            ))}
           </div>
-        </div>
-      </section>
 
-      <section className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
-        <div className="flex items-center gap-2 mb-6 overflow-x-auto pb-2 scrollbar-hide">
-          <button
-            onClick={() => setActiveCategory('all')}
-            className={`shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all ${
-              activeCategory === 'all'
-                ? 'bg-[#00a8e1] text-white'
-                : 'bg-white/10 text-gray-300 hover:bg-white/20'
-            }`}
-          >
-            All
-          </button>
-          <button
-            onClick={() => setActiveCategory('movies')}
-            className={`shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all ${
-              activeCategory === 'movies'
-                ? 'bg-[#00a8e1] text-white'
-                : 'bg-white/10 text-gray-300 hover:bg-white/20'
-            }`}
-          >
-            Movies
-          </button>
-          <button
-            onClick={() => setActiveCategory('series')}
-            className={`shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all ${
-              activeCategory === 'series'
-                ? 'bg-[#00a8e1] text-white'
-                : 'bg-white/10 text-gray-300 hover:bg-white/20'
-            }`}
-          >
-            Series
-          </button>
-        </div>
-      </section>
+          <h1 className="text-2xl md:text-5xl lg:text-6xl font-semibold leading-none line-clamp-1 md:line-clamp-2">
+            {featured.title}
+          </h1>
 
-      <section className="mx-auto max-w-7xl space-y-8 px-4 py-2 sm:px-6 lg:px-8">
-        {continueWatching.length > 0 && (
-          <section>
-            <h2 className="mb-4 text-xl font-semibold sm:text-2xl">Continue Watching</h2>
-            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4">
-              {continueWatching.map((item) => (
-                <MovieCard key={`continue-${item.id}`} movie={item} className="w-[160px] sm:w-[200px] md:w-[240px] shrink-0" progress={progressMap[item.id]} />
-              ))}
-            </div>
-          </section>
-        )}
+          <p className="mt-2 md:mt-4 text-xs md:text-sm text-gray-200 max-w-sm md:max-xl line-clamp-2 md:line-clamp-3">
+            {featured.overview}
+          </p>
 
-        {trendingTmdb.length > 0 && (
-          <section>
-            <h2 className="mb-4 text-xl font-semibold sm:text-2xl">Trending Now</h2>
-            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4">
-              {trendingTmdb.map((item) => (
-                <MovieCard key={`trending-${item.id}`} movie={item} className="w-[160px] sm:w-[200px] md:w-[240px] shrink-0" progress={progressMap[item.id]} />
-              ))}
-            </div>
-          </section>
-        )}
-
-        {(activeCategory === 'all' || activeCategory === 'movies') && MOVIE_GENRE_SECTIONS.map(section => {
-          const items = getItemsByGenre({ ...section, isMovie: true }, movies);
-          if (items.length === 0) return null;
-          
-          return (
-            <section key={section.id}>
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold sm:text-2xl">{section.label}</h2>
-                <Link
-                  href={`/genres?type=movie&genre=${encodeURIComponent(section.genres[0])}`}
-                  className="text-sm text-[#00a8e1] hover:text-[#25baf0] transition-colors"
-                >
-                  View All
-                </Link>
-              </div>
-              <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4">
-                {items.map((item) => (
-                  <MovieCard key={`movie-${section.id}-${item.id}`} movie={item} className="w-[160px] sm:w-[200px] md:w-[240px] shrink-0" progress={progressMap[item.id]} />
-                ))}
-              </div>
-            </section>
-          );
-        })}
-
-        {(activeCategory === 'all' || activeCategory === 'series') && SERIES_GENRE_SECTIONS.map(section => {
-          const items = getItemsByGenre({ ...section, isMovie: false }, series);
-          if (items.length === 0) return null;
-          
-          return (
-            <section key={section.id}>
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold sm:text-2xl">{section.label}</h2>
-                <Link
-                  href={`/genres?type=series&genre=${encodeURIComponent(section.genres[0])}`}
-                  className="text-sm text-[#00a8e1] hover:text-[#25baf0] transition-colors"
-                >
-                  View All
-                </Link>
-              </div>
-              <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4">
-                {items.map((item) => (
-                  <MovieCard key={`series-${section.id}-${item.id}`} movie={item} className="w-[160px] sm:w-[200px] md:w-[240px] shrink-0" progress={progressMap[item.id]} />
-                ))}
-              </div>
-            </section>
-          );
-        })}
-
-        {allMedia.length === 0 && (
-          <div className="py-20 text-center">
-            <p className="text-gray-400 text-lg">No content available</p>
-            <Link href="/admin" className="mt-4 inline-block text-[#00a8e1] hover:text-[#25baf0] transition-colors">
-              Add content in Admin
+          <div className="flex gap-2 md:gap-3 mt-3 md:mt-6">
+            <Link
+              href={`/watch/${featured.slug || featured.id}?source=${featured.sources[0]?.id}`}
+              className="flex items-center gap-1.5 md:gap-2 bg-white text-black px-3 md:px-6 py-2 md:py-3 rounded text-xs md:text-sm font-medium hover:bg-gray-200 transition-colors"
+            >
+              <svg className="w-4 h-4 md:w-5 md:h-5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7z" />
+              </svg>
+              <span className="hidden md:inline">{featuredProgress ? 'Resume' : 'Play'}</span>
+              <span className="md:hidden">{featuredProgress ? 'Resume' : 'Play'}</span>
+            </Link>
+            <Link
+              href={`/movie/${featured.slug || featured.id}`}
+              className="flex items-center gap-1.5 md:gap-2 bg-white/20 backdrop-blur-sm px-3 md:px-6 py-2 md:py-3 rounded text-xs md:text-sm font-medium hover:bg-white/30 transition-colors"
+            >
+              <svg className="w-4 h-4 md:w-5 md:h-5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span className="hidden md:inline">More Info</span>
+              <span className="md:hidden">Info</span>
             </Link>
           </div>
-        )}
+        </div>
       </section>
+
+      <div className="mt-2 md:mt-4 pb-8 -mt-12 relative z-20">
+        {continueWatchingItems.length > 0 && (
+          <section className="px-2 md:px-4">
+            <h2 className="text-sm font-medium mb-3 flex items-center gap-2">
+              <span>Continue Watching</span>
+              <span className="text-gray-500">›</span>
+            </h2>
+              <div className="flex gap-1 md:gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                {continueWatchingItems.map((item) => (
+                  <div key={item.id} className="shrink-0 w-[110px] sm:w-[130px] md:w-[160px] lg:w-[180px]">
+                    <Link href={`/movie/${item.slug || item.id}`}>
+                      <div className="relative h-20 sm:h-24 md:h-28 lg:h-32 rounded-md overflow-hidden">
+                        <Image
+                          src={item.backdrop || item.poster}
+                          alt={item.title}
+                          fill
+                          className="object-cover"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                        <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-600">
+                          {progressMap[item.id] && (
+                            <div
+                              className="h-full bg-[#e50914]"
+                              style={{ width: `${(progressMap[item.id].progress / progressMap[item.id].duration) * 100}%` }}
+                            />
+                          )}
+                        </div>
+                      </div>
+                      <p className="text-xs mt-1 truncate text-gray-300">{item.title}</p>
+                    </Link>
+                  </div>
+                ))}
+              </div>
+          </section>
+        )}
+
+        {trendingWithNumbers.length > 0 && (
+          <section className="px-2 md:px-4">
+            <h2 className="text-sm font-medium mb-3 flex items-center gap-2">
+              <span>Top 10 in India</span>
+              <span className="text-gray-500">›</span>
+            </h2>
+            <div className="flex gap-4 md:gap-6 pb-2 overflow-x-auto scrollbar-hide">
+              {trendingWithNumbers.map((item, idx) => (
+                <div key={item.id} className="shrink-0 flex items-center">
+                  <span className="text-5xl sm:text-6xl md:text-7xl font-bold text-transparent leading-none select-none"
+                    style={{ WebkitTextStroke: '2px rgba(255,255,255,0.7)' }}>
+                    {idx + 1}
+                  </span>
+                  <Link href={`/movie/${item.slug || item.id}`} className="block">
+                    <div className="relative h-20 sm:h-24 md:h-28 lg:h-32 w-[110px] sm:w-[130px] md:w-[160px] lg:w-[180px] rounded-md overflow-hidden">
+                      <Image
+                        src={item.backdrop || item.poster}
+                        alt={item.title}
+                        fill
+                        className="object-cover"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                    </div>
+                  </Link>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {topRatedMovies.length > 0 && (
+          <section className="px-2 md:px-4">
+            <h2 className="text-sm font-medium mb-3 flex items-center gap-2">
+              <span>Top Rated Movies</span>
+              <span className="text-gray-500">›</span>
+            </h2>
+            <div className="flex gap-1 md:gap-2 overflow-x-auto pb-2 scrollbar-hide">
+              {topRatedMovies.map((item) => (
+                <div key={item.id} className="shrink-0 w-[110px] sm:w-[130px] md:w-[160px] lg:w-[180px]">
+                  <Link href={`/movie/${item.slug || item.id}`}>
+                    <div className="relative h-20 sm:h-24 md:h-28 lg:h-32 rounded-md overflow-hidden">
+                      <Image
+                        src={item.backdrop || item.poster}
+                        alt={item.title}
+                        fill
+                        className="object-cover"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                      <div className="absolute bottom-1 right-1">
+                        <span className="text-[10px] text-yellow-500">★ {item.rating.toFixed(1)}</span>
+                      </div>
+                    </div>
+                    <p className="text-xs mt-1 truncate text-gray-300">{item.title}</p>
+                  </Link>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {topRatedSeries.length > 0 && (
+          <section className="px-2 md:px-4">
+            <h2 className="text-sm font-medium mb-3 flex items-center gap-2">
+              <span>Top Rated TV Shows</span>
+              <span className="text-gray-500">›</span>
+            </h2>
+            <div className="flex gap-1 md:gap-2 overflow-x-auto pb-2 scrollbar-hide">
+              {topRatedSeries.map((item) => (
+                <div key={item.id} className="shrink-0 w-[110px] sm:w-[130px] md:w-[160px] lg:w-[180px]">
+                  <Link href={`/movie/${item.slug || item.id}`}>
+                    <div className="relative h-20 sm:h-24 md:h-28 lg:h-32 rounded-md overflow-hidden">
+                      <Image
+                        src={item.backdrop || item.poster}
+                        alt={item.title}
+                        fill
+                        className="object-cover"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                      <div className="absolute bottom-1 right-1">
+                        <span className="text-[10px] text-yellow-500">★ {item.rating.toFixed(1)}</span>
+                      </div>
+                    </div>
+                    <p className="text-xs mt-1 truncate text-gray-300">{item.title}</p>
+                  </Link>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {MOVIE_GENRE_SECTIONS.map((section) => {
+          const items = getItemsByGenre({ ...section, isMovie: true }, movies);
+          if (items.length === 0) return null;
+          return (
+            <section key={section.id} className="px-2 md:px-4">
+              <h2 className="text-sm font-medium mb-3 flex items-center gap-2">
+                <span>{section.label}</span>
+                <span className="text-gray-500">›</span>
+              </h2>
+              <div className="flex gap-1 md:gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                {items.map((item) => (
+                  <div key={item.id} className="shrink-0 w-[110px] sm:w-[130px] md:w-[160px] lg:w-[180px]">
+                    <Link href={`/movie/${item.slug || item.id}`}>
+                      <div className="relative h-20 sm:h-24 md:h-28 lg:h-32 rounded-md overflow-hidden">
+                        <Image
+                          src={item.backdrop || item.poster}
+                          alt={item.title}
+                          fill
+                          className="object-cover"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                      </div>
+                      <p className="text-xs mt-1 truncate text-gray-300">{item.title}</p>
+                    </Link>
+                  </div>
+                ))}
+              </div>
+            </section>
+          );
+        })}
+
+        {SERIES_GENRE_SECTIONS.map((section) => {
+          const items = getItemsByGenre({ ...section, isMovie: false }, series);
+          if (items.length === 0) return null;
+          return (
+            <section key={section.id} className="px-2 md:px-4">
+              <h2 className="text-sm font-medium mb-3 flex items-center gap-2">
+                <span>{section.label}</span>
+                <span className="text-gray-500">›</span>
+              </h2>
+              <div className="flex gap-1 md:gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                {items.map((item) => (
+                  <div key={item.id} className="shrink-0 w-[110px] sm:w-[130px] md:w-[160px] lg:w-[180px]">
+                    <Link href={`/movie/${item.slug || item.id}`}>
+                      <div className="relative h-20 sm:h-24 md:h-28 lg:h-32 rounded-md overflow-hidden">
+                        <Image
+                          src={item.backdrop || item.poster}
+                          alt={item.title}
+                          fill
+                          className="object-cover"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                        <div className="absolute top-1 right-1">
+                          <span className="text-[10px] bg-[#e50914] px-1.5 py-0.5 rounded text-white">TV</span>
+                        </div>
+                      </div>
+                      <p className="text-xs mt-1 truncate text-gray-300">{item.title}</p>
+                    </Link>
+                  </div>
+                ))}
+              </div>
+            </section>
+          );
+        })}
+      </div>
     </main>
   );
 }

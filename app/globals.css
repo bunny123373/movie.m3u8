@@ -5,13 +5,10 @@
 }
 
 :root {
-  --background: #09090b;
+  --background: #141414;
   --foreground: #fafafa;
-}
-
-:root.light {
-  --background: #ffffff;
-  --foreground: #18181b;
+  --netflix-red: #e50914;
+  --netflix-red-hover: #b20710;
 }
 
 body {

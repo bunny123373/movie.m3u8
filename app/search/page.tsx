@@ -94,15 +94,15 @@ function SearchContent() {
   const popularSearches = ['Action', 'Drama', 'Comedy', 'Thriller', 'Sci-Fi'];
 
   return (
-    <main className="min-h-screen bg-[#0a0a0a] text-white pb-20 md:pb-0">
-      <div className="max-w-5xl mx-auto px-4 py-8">
-        <div className="flex items-center gap-4 mb-8">
-          <Link href="/" className="text-gray-400 hover:text-white">
+    <main className="min-h-screen bg-[#141414] text-white pt-16 md:pt-20">
+      <div className="max-w-[1800px] mx-auto px-4 md:px-8 py-6 md:py-8">
+        <div className="flex items-center gap-4 mb-6 md:mb-8">
+          <Link href="/" className="text-gray-400 hover:text-white transition-colors">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </Link>
-          <h1 className="text-2xl font-bold">Search</h1>
+          <h1 className="text-2xl md:text-3xl font-bold">Search</h1>
         </div>
 
         <div className="relative mb-8">
@@ -110,16 +110,17 @@ function SearchContent() {
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search movies, series, genres..."
-            className="w-full px-5 py-4 pl-14 bg-[#1a1a1a] border border-[#333] rounded-xl text-white placeholder-gray-500 focus:border-[#00a8e1] focus:outline-none text-lg"
+            placeholder="Titles, people, genres"
+            className="w-full px-5 py-3 md:py-4 pl-12 md:pl-14 bg-[#222] border border-transparent rounded text-white placeholder-gray-400 focus:border-white focus:outline-none text-base md:text-lg"
+            autoFocus
           />
-          <svg className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="absolute left-4 md:left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
           {query && (
             <button
               onClick={() => setQuery('')}
-              className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white"
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -136,22 +137,26 @@ function SearchContent() {
 
         {!loading && hasSearched && results.length > 0 && (
           <div>
-            <p className="text-gray-400 mb-4">{results.length} results found</p>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            <div className="flex items-center gap-2 mb-4 md:mb-6">
+              <span className="text-sm md:text-base font-medium">{results.length} titles</span>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4">
               {results.map((item) => (
                 <Link key={item.id} href={`/movie/${item.slug || item.id}`} className="group">
-                  <div className="aspect-[2/3] rounded-lg overflow-hidden bg-[#1a1a1a] mb-2 relative">
-                    {item.poster ? (
-                      <Image src={item.poster} alt={item.title} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
+                  <div className="aspect-[2/3] rounded overflow-hidden bg-[#222] mb-2 relative transition-transform duration-300 group-hover:scale-105 group-hover:shadow-lg group-hover:shadow-red-900/20">
+                    {item.backdrop ? (
+                      <Image src={item.backdrop} alt={item.title} fill className="object-cover" />
+                    ) : item.poster ? (
+                      <Image src={item.poster} alt={item.title} fill className="object-cover" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-gray-500">No Image</div>
                     )}
-                    <div className="absolute top-2 right-2 px-2 py-1 bg-black/70 rounded text-xs font-medium">
-                      ★ {item.rating.toFixed(1)}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                    <div className="absolute bottom-2 left-2 right-2">
+                      <h3 className="text-xs md:text-sm font-medium truncate text-white">{item.title}</h3>
+                      <p className="text-[10px] text-gray-400 mt-0.5">{item.releaseDate.split('-')[0]} • {item.mediaType === 'series' ? `${item.totalEpisodes} eps` : 'Movie'}</p>
                     </div>
                   </div>
-                  <h3 className="text-sm font-medium truncate">{item.title}</h3>
-                  <p className="text-xs text-gray-400 mt-1">{item.releaseDate.split('-')[0]}</p>
                 </Link>
               ))}
             </div>
@@ -159,21 +164,21 @@ function SearchContent() {
         )}
 
         {!loading && hasSearched && results.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-gray-400 text-lg mb-4">No results found for "{query}"</p>
-            <p className="text-gray-500 text-sm">Try different keywords or browse genres</p>
+          <div className="text-center py-12 md:py-20">
+            <p className="text-gray-300 text-lg md:text-xl mb-2">No titles found for "{query}"</p>
+            <p className="text-gray-500 text-sm md:text-base">Please make sure your spelling is correct, or try using fewer filters.</p>
           </div>
         )}
 
         {!hasSearched && (
-          <div>
-            <p className="text-gray-400 mb-4">Popular searches</p>
-            <div className="flex flex-wrap gap-2">
+          <div className="max-w-3xl">
+            <p className="text-gray-400 text-sm md:text-base mb-3 md:mb-4">Popular searches</p>
+            <div className="flex flex-wrap gap-2 md:gap-3">
               {popularSearches.map((term) => (
                 <button
                   key={term}
                   onClick={() => setQuery(term)}
-                  className="px-4 py-2 bg-[#1a1a1a] hover:bg-[#2a2a2a] rounded-full text-sm text-gray-300 hover:text-white transition-colors"
+                  className="px-4 py-2 md:py-2.5 bg-[#2a2a2a] hover:bg-[#3a3a3a] rounded text-sm md:text-base text-gray-300 hover:text-white transition-colors"
                 >
                   {term}
                 </button>
@@ -188,7 +193,7 @@ function SearchContent() {
 
 function SearchLoading() {
   return (
-    <main className="min-h-screen bg-[#0a0a0a] text-white pb-20 md:pb-0 flex items-center justify-center">
+    <main className="min-h-screen bg-[#141414] text-white pt-16 md:pt-20 flex items-center justify-center">
       <div className="h-8 w-8 animate-spin rounded-full border-2 border-white border-t-transparent" />
     </main>
   );

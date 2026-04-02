@@ -97,14 +97,14 @@ function GenresContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0a0a0a] text-white flex items-center justify-center">
+      <div className="min-h-screen bg-[#141414] text-white flex items-center justify-center">
         <div className="h-10 w-10 animate-spin rounded-full border-2 border-white border-t-transparent" />
       </div>
     );
   }
 
   return (
-    <main className="min-h-screen bg-[#0a0a0a] text-white pb-20 md:pb-0">
+    <main className="min-h-screen bg-[#141414] text-white pb-20 md:pb-0">
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="flex items-center gap-4 mb-8">
           <Link href="/" className="text-gray-400 hover:text-white">
@@ -118,30 +118,30 @@ function GenresContent() {
         <div className="flex flex-wrap gap-2 mb-4">
           <button
             onClick={() => setMediaTypeFilter('all')}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+            className={`px-4 py-2 rounded-sm text-sm font-medium transition-all ${
               mediaTypeFilter === 'all'
-                ? 'bg-[#00a8e1] text-white'
-                : 'bg-[#1a1a1a] text-gray-400 hover:text-white'
+                ? 'bg-[#e50914] text-white'
+                : 'bg-[#2a2a2a] text-gray-400 hover:text-white'
             }`}
           >
             All
           </button>
           <button
             onClick={() => setMediaTypeFilter('movie')}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+            className={`px-4 py-2 rounded-sm text-sm font-medium transition-all ${
               mediaTypeFilter === 'movie'
-                ? 'bg-[#00a8e1] text-white'
-                : 'bg-[#1a1a1a] text-gray-400 hover:text-white'
+                ? 'bg-[#e50914] text-white'
+                : 'bg-[#2a2a2a] text-gray-400 hover:text-white'
             }`}
           >
             Movies
           </button>
           <button
             onClick={() => setMediaTypeFilter('series')}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+            className={`px-4 py-2 rounded-sm text-sm font-medium transition-all ${
               mediaTypeFilter === 'series'
-                ? 'bg-[#00a8e1] text-white'
-                : 'bg-[#1a1a1a] text-gray-400 hover:text-white'
+                ? 'bg-[#e50914] text-white'
+                : 'bg-[#2a2a2a] text-gray-400 hover:text-white'
             }`}
           >
             Series
@@ -153,10 +153,10 @@ function GenresContent() {
             <button
               key={group.name}
               onClick={() => setSelectedGenre(group.name)}
-              className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
+              className={`px-4 py-2 rounded-sm text-sm font-medium whitespace-nowrap transition-all ${
                 selectedGenre === group.name
                   ? 'bg-white text-black'
-                  : 'bg-[#1a1a1a] text-gray-400 hover:text-white hover:bg-[#2a2a2a]'
+                  : 'bg-[#2a2a2a] text-gray-400 hover:text-white hover:bg-[#3a3a3a]'
               }`}
             >
               {group.name} ({group.count})
@@ -182,7 +182,7 @@ function GenresContent() {
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
               {filteredMedia.map((item) => (
                 <Link key={item.id} href={`/movie/${item.slug || item.id}`} className="group">
-                  <div className="aspect-[2/3] rounded-lg overflow-hidden bg-[#1a1a1a] mb-2 relative">
+                  <div className="aspect-[2/3] rounded-md overflow-hidden bg-[#1a1a1a] mb-2 relative">
                     {item.poster ? (
                       <Image
                         src={item.poster}
@@ -195,12 +195,12 @@ function GenresContent() {
                     )}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                   </div>
-                  <h3 className="text-sm font-medium truncate">{item.title}</h3>
+                  <h3 className="text-sm font-medium truncate text-white group-hover:text-[#e50914] transition-colors">{item.title}</h3>
                   <div className="flex items-center gap-2 text-xs text-gray-400 mt-1">
                     <span>★ {item.rating.toFixed(1)}</span>
                     <span>{item.releaseDate.split('-')[0]}</span>
                     <span className={`px-1.5 py-0.5 rounded text-[10px] ${
-                      item.mediaType === 'movie' ? 'bg-blue-900 text-blue-300' : 'bg-purple-900 text-purple-300'
+                      item.mediaType === 'movie' ? 'bg-[#e50914]/20 text-[#e50914]' : 'bg-[#e50914]/20 text-[#e50914]'
                     }`}>
                       {item.mediaType === 'movie' ? 'Movie' : 'Series'}
                     </span>
@@ -222,7 +222,7 @@ function GenresContent() {
 export default function GenresPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-[#0a0a0a] text-white flex items-center justify-center">
+      <div className="min-h-screen bg-[#141414] text-white flex items-center justify-center">
         <div className="h-10 w-10 animate-spin rounded-full border-2 border-white border-t-transparent" />
       </div>
     }>
