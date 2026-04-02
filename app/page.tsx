@@ -284,11 +284,6 @@ export default function HomePage() {
               <span className="rounded border border-white/30 bg-black/40 px-2.5 py-0.5 text-xs font-medium text-white backdrop-blur-sm">
                 {year}
               </span>
-              {featured.quality && (
-                <span className="rounded border border-[#00a8e1] bg-[#00a8e1]/20 px-2.5 py-0.5 text-xs font-semibold text-[#00a8e1]">
-                  {featured.quality}
-                </span>
-              )}
             </div>
 
             <h1 className="mb-3 text-3xl font-bold leading-tight drop-shadow-lg sm:text-4xl lg:text-5xl">

@@ -116,17 +116,7 @@ export default function MovieCard({ movie, className, progress }: MovieCardProps
 
         <div className="absolute inset-0 bg-gradient-to-t from-[#09121a] via-[#09121a]/30 to-transparent" />
 
-        <div className="absolute left-2 right-2 top-2 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="rounded-md bg-black/55 px-2 py-1 text-[10px] font-semibold text-slate-100">
-              {movie.quality}
-            </span>
-            {progress && (
-              <span className="rounded-md bg-[#00a8e1]/80 px-1.5 py-0.5 text-[9px] font-semibold text-white">
-                {Math.round((progress.progress / progress.duration) * 100)}%
-              </span>
-            )}
-          </div>
+        <div className="absolute left-2 right-2 top-2 flex items-center justify-end">
           <button
             onClick={toggleFavorite}
             className="rounded-full bg-black/55 p-1.5 text-slate-100 transition-colors hover:bg-black/75"
