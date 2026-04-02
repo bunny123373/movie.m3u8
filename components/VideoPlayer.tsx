@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, Suspense } from 'react';
+import Hls from 'hls.js';
 import { Source } from '@/lib/types';
 
 interface VideoPlayerProps {
@@ -38,92 +39,75 @@ function EmbedPlayer({ source }: { source: Source }) {
 }
 
 function VideoPlayerContent({ source, subtitles = [], poster, title }: VideoPlayerProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const hlsRef = useRef<Hls | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-  const playerInstance = useRef<any>(null);
 
   const isEmbed = source.type === 'embed';
 
   useEffect(() => {
-    if (isEmbed || !containerRef.current) {
+    if (isEmbed || !videoRef.current) {
       setLoading(false);
       return;
     }
 
-    const initPlayer = async () => {
-      try {
-        setLoading(true);
-        
-        const container = containerRef.current!;
-        container.innerHTML = '';
-        
-        const script = document.createElement('script');
-        script.type = 'module';
-        script.src = 'https://cdn.vidstack.io/player';
-        document.head.appendChild(script);
+    const video = videoRef.current;
+    setLoading(true);
+    setError(false);
 
-        await new Promise((resolve, reject) => {
-          script.onload = resolve;
-          script.onerror = reject;
-          setTimeout(() => reject(new Error('Timeout')), 10000);
+    const handleCanPlay = () => setLoading(false);
+    const handleError = () => {
+      setError(true);
+      setLoading(false);
+    };
+
+    if (source.type === 'm3u8' || source.url.includes('.m3u8')) {
+      if (Hls.isSupported()) {
+        const hls = new Hls({
+          enableWorker: true,
+          lowLatencyMode: false,
+          backBufferLength: 90,
+        });
+        hlsRef.current = hls;
+        hls.loadSource(source.url);
+        hls.attachMedia(video);
+
+        hls.on(Hls.Events.MANIFEST_PARSED, () => {
+          setLoading(false);
+          video.play().catch(() => {});
         });
 
-        const { VidstackPlayer, VidstackPlayerLayout } = (window as any).VidstackPlayerLib || { 
-          create: async () => {
-            const container = document.createElement('div');
-            container.innerHTML = `
-              <video class="vidstack-player" controls crossorigin="anonymous" playsinline>
-                <source src="${source.url}" type="application/x-mpegURL" />
-              </video>
-            `;
-            return container.querySelector('video');
+        hls.on(Hls.Events.ERROR, (_event, data) => {
+          if (data.fatal) {
+            handleError();
           }
-        };
-        
-        if (VidstackPlayer && VidstackPlayer.create) {
-          const player = await VidstackPlayer.create({
-            target: container,
-            title: title || source.name,
-            src: source.url,
-            poster: poster || '',
-            layout: new VidstackPlayerLayout({
-              thumbnails: poster || '',
-            }),
-          });
-          
-          playerInstance.current = player;
-          
-          player.addEventListener('error', () => {
-            setError(true);
-            setLoading(false);
-          });
-          
-          player.addEventListener('loaded', () => {
-            setLoading(false);
-          });
-        } else {
-          setError(true);
-        }
-      } catch (err) {
-        console.error('Failed to create Vidstack player:', err);
-        setError(true);
-      } finally {
-        setLoading(false);
+        });
+      } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+        video.src = source.url;
+        video.addEventListener('loadedmetadata', handleCanPlay);
+        video.addEventListener('error', handleError);
+      } else {
+        handleError();
       }
-    };
-
-    initPlayer();
+    } else {
+      video.src = source.url;
+      video.addEventListener('canplay', handleCanPlay);
+      video.addEventListener('error', handleError);
+    }
 
     return () => {
-      if (playerInstance.current) {
+      video.removeEventListener('canplay', handleCanPlay);
+      video.removeEventListener('loadedmetadata', handleCanPlay);
+      video.removeEventListener('error', handleError);
+      if (hlsRef.current) {
         try {
-          playerInstance.current.destroy();
+          hlsRef.current.destroy();
         } catch (e) {}
-        playerInstance.current = null;
+        hlsRef.current = null;
       }
     };
-  }, [source, isEmbed, poster, title]);
+  }, [source, isEmbed]);
 
   if (isEmbed) {
     return <EmbedPlayer source={source} />;
@@ -131,9 +115,14 @@ function VideoPlayerContent({ source, subtitles = [], poster, title }: VideoPlay
 
   return (
     <div className="w-full aspect-video bg-black rounded-xl overflow-hidden">
-      <div 
-        ref={containerRef} 
+      <video
+        ref={videoRef}
         className="w-full h-full"
+        playsInline
+        controls
+        poster={poster}
+        crossOrigin="anonymous"
+        controlsList="nodownload"
       />
       
       {loading && (
