@@ -40,34 +40,90 @@ function EmbedPlayer({ source }: { source: Source }) {
 
 function VideoPlayerContent({ source, subtitles = [], poster, title }: VideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const hlsRef = useRef<Hls | null>(null);
+  const vidstackRef = useRef<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [playerType, setPlayerType] = useState<'vidstack' | 'hls' | 'native'>('native');
 
   const isEmbed = source.type === 'embed';
 
-  useEffect(() => {
-    if (isEmbed || !videoRef.current) {
-      setLoading(false);
-      return;
+  const getStreamType = (url: string): 'm3u8' | 'mp4' | 'unknown' => {
+    if (url.includes('.m3u8') || url.includes('m3u8')) return 'm3u8';
+    if (url.includes('.mp4') || url.includes('.webm') || url.includes('.mkv')) return 'mp4';
+    return 'unknown';
+  };
+
+  const initVidstackPlayer = async () => {
+    if (!containerRef.current) return false;
+    
+    try {
+      const vidstackScript = document.createElement('script');
+      vidstackScript.src = 'https://cdn.vidstack.io/player';
+      vidstackScript.type = 'module';
+      document.head.appendChild(vidstackScript);
+
+      await new Promise((resolve, reject) => {
+        vidstackScript.onload = resolve;
+        vidstackScript.onerror = reject;
+        setTimeout(() => reject(new Error('Timeout')), 8000);
+      });
+
+      const { VidstackPlayer, VidstackPlayerLayout } = (window as any).VidstackPlayerLib || { 
+        create: async () => null 
+      };
+      
+      if (containerRef.current) {
+        containerRef.current.innerHTML = '';
+        
+        const player = await VidstackPlayer.create({
+          target: containerRef.current,
+          title: title || source.name,
+          src: source.url,
+          poster: poster || '',
+          layout: new VidstackPlayerLayout({
+            thumbnails: poster || '',
+          }),
+          autoplay: true,
+          playsinline: true,
+          crossorigin: 'anonymous',
+        });
+
+        vidstackRef.current = player;
+        
+        player.addEventListener('loaded', () => {
+          setLoading(false);
+        });
+        
+        player.addEventListener('error', () => {
+          setLoading(false);
+          setError(true);
+        });
+
+        setPlayerType('vidstack');
+        return true;
+      }
+    } catch (err) {
+      console.warn('Vidstack failed, trying HLS:', err);
     }
+    return false;
+  };
 
+  const initHlsPlayer = () => {
     const video = videoRef.current;
-    setLoading(true);
-    setError(false);
+    if (!video) return false;
 
-    const handleCanPlay = () => setLoading(false);
-    const handleError = () => {
-      setError(true);
-      setLoading(false);
-    };
-
-    if (source.type === 'm3u8' || source.url.includes('.m3u8')) {
+    const streamType = getStreamType(source.url);
+    
+    if (streamType === 'm3u8') {
       if (Hls.isSupported()) {
         const hls = new Hls({
           enableWorker: true,
           lowLatencyMode: false,
           backBufferLength: 90,
+          maxBufferLength: 30,
+          maxMaxBufferLength: 60,
         });
         hlsRef.current = hls;
         hls.loadSource(source.url);
@@ -80,26 +136,67 @@ function VideoPlayerContent({ source, subtitles = [], poster, title }: VideoPlay
 
         hls.on(Hls.Events.ERROR, (_event, data) => {
           if (data.fatal) {
-            handleError();
+            setError(true);
+            setLoading(false);
           }
         });
+
+        setPlayerType('hls');
+        return true;
       } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
         video.src = source.url;
-        video.addEventListener('loadedmetadata', handleCanPlay);
-        video.addEventListener('error', handleError);
-      } else {
-        handleError();
+        video.addEventListener('loadedmetadata', () => setLoading(false));
+        video.addEventListener('error', () => {
+          setError(true);
+          setLoading(false);
+        });
+        setPlayerType('native');
+        return true;
       }
-    } else {
+    } else if (streamType === 'mp4') {
       video.src = source.url;
-      video.addEventListener('canplay', handleCanPlay);
-      video.addEventListener('error', handleError);
+      video.addEventListener('canplay', () => setLoading(false));
+      video.addEventListener('error', () => {
+        setError(true);
+        setLoading(false);
+      });
+      setPlayerType('native');
+      return true;
+    }
+    
+    return false;
+  };
+
+  useEffect(() => {
+    if (isEmbed) {
+      setLoading(false);
+      return;
     }
 
+    setLoading(true);
+    setError(false);
+    setPlayerType('native');
+
+    const init = async () => {
+      const vidstackOk = await initVidstackPlayer();
+      if (!vidstackOk) {
+        const hlsOk = initHlsPlayer();
+        if (!hlsOk) {
+          setError(true);
+        }
+      }
+      if (loading) setLoading(false);
+    };
+
+    init();
+
     return () => {
-      video.removeEventListener('canplay', handleCanPlay);
-      video.removeEventListener('loadedmetadata', handleCanPlay);
-      video.removeEventListener('error', handleError);
+      if (vidstackRef.current) {
+        try {
+          vidstackRef.current.destroy();
+        } catch (e) {}
+        vidstackRef.current = null;
+      }
       if (hlsRef.current) {
         try {
           hlsRef.current.destroy();
@@ -107,37 +204,52 @@ function VideoPlayerContent({ source, subtitles = [], poster, title }: VideoPlay
         hlsRef.current = null;
       }
     };
-  }, [source, isEmbed]);
+  }, [source]);
 
   if (isEmbed) {
     return <EmbedPlayer source={source} />;
   }
 
   return (
-    <div className="w-full aspect-video bg-black rounded-xl overflow-hidden">
-      <video
-        ref={videoRef}
-        className="w-full h-full"
-        playsInline
-        controls
-        poster={poster}
-        crossOrigin="anonymous"
-        controlsList="nodownload"
-      />
+    <div className="w-full aspect-video bg-black rounded-xl overflow-hidden relative">
+      {playerType === 'vidstack' ? (
+        <div ref={containerRef} className="w-full h-full" />
+      ) : (
+        <video
+          ref={videoRef}
+          className="w-full h-full"
+          playsInline
+          controls
+          poster={poster}
+          crossOrigin="anonymous"
+          controlsList="nodownload"
+        />
+      )}
+      
+      <div className="absolute top-2 left-2 z-20 flex gap-2">
+        <span className="bg-black/70 text-white text-xs px-2 py-1 rounded border border-white/20">
+          {playerType === 'vidstack' ? 'Vidstack' : playerType === 'hls' ? 'HLS.js' : 'Native'}
+        </span>
+        {source.name && (
+          <span className="bg-black/70 text-white text-xs px-2 py-1 rounded border border-white/20">
+            {source.name}
+          </span>
+        )}
+      </div>
       
       {loading && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/80 z-10 pointer-events-none">
           <div className="flex flex-col items-center gap-3">
             <div className="h-10 w-10 animate-spin rounded-full border-2 border-white border-t-transparent" />
-            <p className="text-sm text-white/80">Loading stream...</p>
+            <p className="text-sm text-white/80">Loading {playerType} player...</p>
           </div>
         </div>
       )}
 
-      {error && (
+      {error && !loading && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/85 z-10">
           <div className="text-center">
-            <p className="mb-3 text-sm text-red-400">Failed to load this source.</p>
+            <p className="mb-3 text-sm text-red-400">Failed to load stream</p>
             <a
               href={source.url}
               target="_blank"
