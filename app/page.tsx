@@ -208,29 +208,7 @@ export default function HomePage() {
     return [...allMedia].sort((a, b) => b.rating - a.rating).slice(0, 10);
   }, [allMedia]);
 
-  const categorySections = useMemo(() => {
-    const genreCounts: Record<string, { count: number; items: MediaItem[] }> = {};
-    
-    allMedia.forEach((item) => {
-      item.genres.slice(0, 2).forEach((genre) => {
-        if (!genreCounts[genre]) {
-          genreCounts[genre] = { count: 0, items: [] };
-        }
-        genreCounts[genre].count++;
-        genreCounts[genre].items.push(item);
-      });
-    });
 
-    return Object.entries(genreCounts)
-      .filter(([_, data]) => data.count >= 2)
-      .sort((a, b) => b[1].count - a[1].count)
-      .slice(0, 6)
-      .map(([genre, data]) => ({
-        title: genre,
-        slug: genre.toLowerCase().replace(/\s+/g, '-'),
-        items: data.items.slice(0, 10),
-      }));
-  }, [allMedia, featured]);
 
   if (loading) {
     return <HomeSkeleton />;
@@ -443,18 +421,7 @@ export default function HomePage() {
           </section>
         )}
 
-        {categorySections.map((section) => (
-          section.items.length > 0 && (
-            <section key={section.title} id={section.slug} className="scroll-mt-24">
-              <h2 className="mb-4 text-xl font-semibold sm:text-2xl">{section.title}</h2>
-              <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4">
-                {section.items.map((item) => (
-                  <MovieCard key={`cat-${item.id}`} movie={item} className="w-[160px] sm:w-[200px] md:w-[240px] shrink-0" progress={progressMap[item.id]} />
-                ))}
-              </div>
-            </section>
-          )
-        ))}
+
       </section>
     </main>
   );
