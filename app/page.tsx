@@ -245,8 +245,77 @@ export default function HomePage() {
     );
   }
 
+  const year = featured.releaseDate.split('-')[0];
+  const isFeaturedSeries = featured.mediaType === 'series';
+  const featuredProgress = progressMap[featured.id];
+
   return (
     <main className="min-h-screen bg-[#0f171e] text-white pb-safe md:pb-0">
+
+      <section className="relative w-full overflow-hidden" style={{ height: '65vh', minHeight: '500px' }}>
+        <div className="absolute inset-0">
+          <Image
+            src={featured.backdrop || featured.poster || '/placeholder.jpg'}
+            alt={featured.title}
+            fill
+            priority
+            className="object-cover"
+            sizes="100vw"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#0f171e] via-[#0f171e]/80 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0f171e] via-transparent to-transparent" />
+        </div>
+
+        <div className="relative z-10 mx-auto flex h-full max-w-7xl items-center px-4 sm:px-6 lg:px-8">
+          <div className="max-w-xl">
+            <h1 className="mb-3 text-4xl font-bold leading-tight sm:text-5xl lg:text-6xl">
+              {featured.title}
+            </h1>
+
+            <div className="mb-4 flex items-center gap-3 text-sm">
+              <span className="text-gray-300">{year}</span>
+              <span className="text-gray-500">|</span>
+              <span className="flex items-center gap-1 text-yellow-400">
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 17.27L18.18 21 16.54 13.97 22 9.24 14.81 8.63 12 2 9.19 8.63 2 9.24 7.46 13.97 5.82 21z" />
+                </svg>
+                {featured.rating.toFixed(1)}
+              </span>
+              {'runtime' in featured && featured.runtime && (
+                <>
+                  <span className="text-gray-500">|</span>
+                  <span className="text-gray-300">{featured.runtime}</span>
+                </>
+              )}
+            </div>
+
+            <p className="mb-6 line-clamp-3 text-base leading-relaxed text-gray-300">
+              {featured.overview}
+            </p>
+
+            <div className="flex flex-wrap gap-3">
+              <Link
+                className="inline-flex items-center gap-2 rounded-sm bg-white px-6 py-2.5 text-sm font-semibold text-black transition-colors hover:bg-gray-200"
+                href={`/watch/${featured.slug || featured.id}?source=${featured.sources[0]?.id}`}
+              >
+                <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M8 5v14l11-7z" />
+                </svg>
+                {featuredProgress ? 'Resume' : 'Play'}
+              </Link>
+              <Link
+                className="inline-flex items-center gap-2 rounded-sm border border-white/40 bg-white/10 px-6 py-2.5 text-sm font-semibold text-white backdrop-blur-sm transition-colors hover:bg-white/20"
+                href={`/movie/${featured.slug || featured.id}`}
+              >
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                More Info
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
 
       <section className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-2 mb-6 overflow-x-auto pb-2 scrollbar-hide">
