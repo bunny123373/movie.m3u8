@@ -2,6 +2,7 @@
 
 import { Suspense } from 'react';
 import { MediaPlayer, MediaProvider } from '@vidstack/react';
+import { defaultLayoutIcons, DefaultVideoLayout } from '@vidstack/react/player/layouts/default';
 import { Source } from '@/lib/types';
 
 import '@vidstack/react/player/styles/default/theme.css';
@@ -59,6 +60,7 @@ function VideoPlayerContent({ source, subtitles = [], poster, title }: VideoPlay
       className="w-full aspect-video bg-black rounded-xl overflow-hidden"
     >
       <MediaProvider />
+      <DefaultVideoLayout icons={defaultLayoutIcons} />
     </MediaPlayer>
   );
 }
