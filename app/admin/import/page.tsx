@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
+import { AdminSidebar } from '@/components/AdminSidebar';
 
 interface Genre {
   id: number;
@@ -182,196 +183,193 @@ export default function ImportPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-[#0d1117] via-[#161b22] to-[#0d1117] text-white">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <div className="flex items-center gap-3">
-              <Link href="/admin" className="text-[#8b949e] hover:text-white">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-              </Link>
-              <h1 className="text-3xl font-bold">Import from TMDB</h1>
+    <div className="min-h-screen bg-[#0f0f13]">
+      <AdminSidebar activeHref="/admin/import" />
+      
+      <main className="lg:ml-64 min-h-screen p-4 sm:p-6 lg:p-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 sm:mb-8">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-white">Import from TMDB</h1>
+              <p className="text-zinc-500 mt-1 text-sm">Browse and import content by category</p>
             </div>
-            <p className="text-[#8b949e] mt-1">Browse and import content by category</p>
           </div>
-        </div>
 
-        <div className="bg-[#161b22] border border-[#30363d] rounded-xl p-6 mb-6">
-          <div className="flex flex-wrap gap-4 items-end">
-            <div>
-              <label className="block text-sm text-[#8b949e] mb-2">Content Type</label>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => { setMediaType('movie'); setSelectedGenre(''); setResults([]); setSelectedItems([]); }}
-                  className={`px-4 py-2 text-sm rounded-lg transition-all ${
-                    mediaType === 'movie'
-                      ? 'bg-[#00a8e1] text-white'
-                      : 'bg-[#21262d] text-[#8b949e] hover:text-white hover:bg-[#30363d]'
-                  }`}
-                >
-                  Movies
-                </button>
-                <button
-                  onClick={() => { setMediaType('tv'); setSelectedGenre(''); setResults([]); setSelectedItems([]); }}
-                  className={`px-4 py-2 text-sm rounded-lg transition-all ${
-                    mediaType === 'tv'
-                      ? 'bg-[#00a8e1] text-white'
-                      : 'bg-[#21262d] text-[#8b949e] hover:text-white hover:bg-[#30363d]'
-                  }`}
-                >
-                  TV Shows
-                </button>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm text-[#8b949e] mb-2">Browse By</label>
-              <div className="flex gap-2 flex-wrap">
-                {BROWSE_OPTIONS.map(opt => (
+          <div className="bg-[#18181b] border border-zinc-800 rounded-xl p-6 mb-6">
+            <div className="flex flex-wrap gap-4 items-end">
+              <div>
+                <label className="block text-sm text-zinc-400 mb-2">Content Type</label>
+                <div className="flex gap-2">
                   <button
-                    key={opt.id}
-                    onClick={() => { setBrowseType(opt.id as any); setSelectedGenre(''); setResults([]); setSelectedItems([]); }}
-                    className={`px-3 py-2 text-sm rounded-lg transition-all ${
-                      browseType === opt.id
-                        ? 'bg-[#00a8e1] text-white'
-                        : 'bg-[#21262d] text-[#8b949e] hover:text-white hover:bg-[#30363d]'
+                    onClick={() => { setMediaType('movie'); setSelectedGenre(''); setResults([]); setSelectedItems([]); }}
+                    className={`px-4 py-2 text-sm rounded-xl transition-all ${
+                      mediaType === 'movie'
+                        ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white'
+                        : 'bg-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-700'
                     }`}
                   >
-                    {opt.label}
+                    Movies
                   </button>
-                ))}
+                  <button
+                    onClick={() => { setMediaType('tv'); setSelectedGenre(''); setResults([]); setSelectedItems([]); }}
+                    className={`px-4 py-2 text-sm rounded-xl transition-all ${
+                      mediaType === 'tv'
+                        ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white'
+                        : 'bg-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-700'
+                    }`}
+                  >
+                    TV Shows
+                  </button>
+                </div>
               </div>
-            </div>
-            
-            {browseType === 'genre' && (
-              <div className="flex-1 min-w-[200px]">
-                <label className="block text-sm text-[#8b949e] mb-2">Category</label>
-                <select
-                  value={selectedGenre}
-                  onChange={(e) => setSelectedGenre(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-[#0d1117] border border-[#30363d] rounded-lg text-white focus:outline-none focus:border-[#00a8e1]"
-                >
-                  <option value="">Select a category</option>
-                  {genres.map(g => (
-                    <option key={g.id} value={g.id}>{g.name}</option>
+
+              <div>
+                <label className="block text-sm text-zinc-400 mb-2">Browse By</label>
+                <div className="flex gap-2 flex-wrap">
+                  {BROWSE_OPTIONS.map(opt => (
+                    <button
+                      key={opt.id}
+                      onClick={() => { setBrowseType(opt.id as any); setSelectedGenre(''); setResults([]); setSelectedItems([]); }}
+                      className={`px-3 py-2 text-sm rounded-xl transition-all ${
+                        browseType === opt.id
+                          ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white'
+                          : 'bg-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-700'
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
                   ))}
-                </select>
-              </div>
-            )}
-
-            <button
-              onClick={searchByGenre}
-              disabled={(browseType === 'genre' && !selectedGenre) || loading}
-              className="px-6 py-2.5 bg-[#00a8e1] hover:bg-[#00b4e6] rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-            >
-              {loading ? 'Loading...' : 'Browse'}
-            </button>
-          </div>
-        </div>
-
-        {saving && (
-          <div className="bg-[#161b22] border border-[#30363d] rounded-xl p-4 mb-6">
-            <div className="flex items-center gap-3">
-              <div className="animate-spin h-5 w-5 border-2 border-[#00a8e1] border-t-transparent rounded-full" />
-              <span className="text-[#8b949e]">Importing... {importedCount}/{selectedItems.length}</span>
-            </div>
-          </div>
-        )}
-
-        {results.length > 0 && (
-          <>
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-4">
-                <button
-                  onClick={toggleAll}
-                  className="px-4 py-2 text-sm bg-[#21262d] hover:bg-[#30363d] border border-[#30363d] rounded-lg transition-all"
-                >
-                  {selectedItems.length === results.length ? 'Deselect All' : 'Select All'}
-                </button>
-                <span className="text-[#8b949e]">{selectedItems.length} selected</span>
+                </div>
               </div>
               
-              {selectedItems.length > 0 && (
-                <button
-                  onClick={importSelected}
-                  disabled={saving}
-                  className="px-6 py-2.5 bg-green-600 hover:bg-green-700 rounded-lg font-medium disabled:opacity-50 transition-all"
-                >
-                  {saving ? 'Importing...' : `Import ${selectedItems.length} Items`}
-                </button>
-              )}
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-              {results.map((item) => (
-                <div
-                  key={item.id}
-                  className={`relative group cursor-pointer rounded-xl overflow-hidden border-2 transition-all ${
-                    selectedItems.includes(item.id) 
-                      ? 'border-[#00a8e1] ring-2 ring-[#00a8e1]/50' 
-                      : 'border-transparent hover:border-[#30363d]'
-                  }`}
-                  onClick={() => toggleItem(item.id)}
-                >
-                  {item.poster ? (
-                    <Image
-                      src={item.poster}
-                      alt={item.title}
-                      width={200}
-                      height={300}
-                      className="w-full aspect-[2/3] object-cover"
-                    />
-                  ) : (
-                    <div className="w-full aspect-[2/3] bg-[#21262d] flex items-center justify-center">
-                      <span className="text-[#8b949e]">No Poster</span>
-                    </div>
-                  )}
-                  
-                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    {selectedItems.includes(item.id) ? (
-                      <svg className="w-12 h-12 text-[#00a8e1]" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
-                      </svg>
-                    ) : (
-                      <svg className="w-12 h-12 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                      </svg>
-                    )}
-                  </div>
-                  
-                  <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/90 to-transparent">
-                    <p className="text-xs font-medium truncate">{item.title}</p>
-                    <div className="flex items-center gap-2 text-[10px] text-[#8b949e]">
-                      <span>★ {item.rating.toFixed(1)}</span>
-                      <span>{item.releaseDate?.split('-')[0] || 'N/A'}</span>
-                    </div>
-                  </div>
+              {browseType === 'genre' && (
+                <div className="flex-1 min-w-[200px]">
+                  <label className="block text-sm text-zinc-400 mb-2">Category</label>
+                  <select
+                    value={selectedGenre}
+                    onChange={(e) => setSelectedGenre(e.target.value)}
+                    className="w-full px-4 py-2.5 bg-zinc-900 border border-zinc-700 rounded-xl text-white focus:outline-none focus:border-cyan-500"
+                  >
+                    <option value="">Select a category</option>
+                    {genres.map(g => (
+                      <option key={g.id} value={g.id}>{g.name}</option>
+                    ))}
+                  </select>
                 </div>
-              ))}
+              )}
+
+              <button
+                onClick={searchByGenre}
+                disabled={(browseType === 'genre' && !selectedGenre) || loading}
+                className="px-6 py-2.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 rounded-xl font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              >
+                {loading ? 'Loading...' : 'Browse'}
+              </button>
             </div>
-
-            {page < totalPages && (
-              <div className="flex justify-center mt-6">
-                <button
-                  onClick={loadMore}
-                  disabled={loading}
-                  className="px-6 py-2.5 bg-[#21262d] hover:bg-[#30363d] border border-[#30363d] rounded-lg transition-all disabled:opacity-50"
-                >
-                  {loading ? 'Loading...' : 'Load More'}
-                </button>
-              </div>
-            )}
-          </>
-        )}
-
-        {results.length === 0 && !loading && selectedGenre && (
-          <div className="text-center py-12 text-[#8b949e]">
-            No results found for this category
           </div>
-        )}
-      </div>
-    </main>
+
+          {saving && (
+            <div className="bg-[#18181b] border border-zinc-800 rounded-xl p-4 mb-6">
+              <div className="flex items-center gap-3">
+                <div className="animate-spin h-5 w-5 border-2 border-cyan-500 border-t-transparent rounded-full" />
+                <span className="text-zinc-400">Importing... {importedCount}/{selectedItems.length}</span>
+              </div>
+            </div>
+          )}
+
+          {results.length > 0 && (
+            <>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-4">
+                  <button
+                    onClick={toggleAll}
+                    className="px-4 py-2 text-sm bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded-xl transition-all"
+                  >
+                    {selectedItems.length === results.length ? 'Deselect All' : 'Select All'}
+                  </button>
+                  <span className="text-zinc-400">{selectedItems.length} selected</span>
+                </div>
+                
+                {selectedItems.length > 0 && (
+                  <button
+                    onClick={importSelected}
+                    disabled={saving}
+                    className="px-6 py-2.5 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-400 hover:to-emerald-500 rounded-xl font-medium disabled:opacity-50 transition-all"
+                  >
+                    {saving ? 'Importing...' : `Import ${selectedItems.length} Items`}
+                  </button>
+                )}
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                {results.map((item) => (
+                  <div
+                    key={item.id}
+                    className={`relative group cursor-pointer rounded-xl overflow-hidden border-2 transition-all ${
+                      selectedItems.includes(item.id) 
+                        ? 'border-cyan-500 ring-2 ring-cyan-500/50' 
+                        : 'border-transparent hover:border-zinc-700'
+                    }`}
+                    onClick={() => toggleItem(item.id)}
+                  >
+                    {item.poster ? (
+                      <Image
+                        src={item.poster}
+                        alt={item.title}
+                        width={200}
+                        height={300}
+                        className="w-full aspect-[2/3] object-cover"
+                      />
+                    ) : (
+                      <div className="w-full aspect-[2/3] bg-zinc-800 flex items-center justify-center">
+                        <span className="text-zinc-500">No Poster</span>
+                      </div>
+                    )}
+                    
+                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      {selectedItems.includes(item.id) ? (
+                        <svg className="w-12 h-12 text-cyan-400" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
+                        </svg>
+                      ) : (
+                        <svg className="w-12 h-12 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                        </svg>
+                      )}
+                    </div>
+                    
+                    <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/90 to-transparent">
+                      <p className="text-xs font-medium text-white truncate">{item.title}</p>
+                      <div className="flex items-center gap-2 text-[10px] text-zinc-400">
+                        <span>★ {item.rating.toFixed(1)}</span>
+                        <span>{item.releaseDate?.split('-')[0] || 'N/A'}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {page < totalPages && (
+                <div className="flex justify-center mt-6">
+                  <button
+                    onClick={loadMore}
+                    disabled={loading}
+                    className="px-6 py-2.5 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded-xl transition-all disabled:opacity-50"
+                  >
+                    {loading ? 'Loading...' : 'Load More'}
+                  </button>
+                </div>
+              )}
+            </>
+          )}
+
+          {results.length === 0 && !loading && selectedGenre && (
+            <div className="text-center py-12 text-zinc-500">
+              No results found for this category
+            </div>
+          )}
+        </div>
+      </main>
+    </div>
   );
 }
