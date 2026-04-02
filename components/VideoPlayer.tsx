@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useRef, useState, Suspense } from 'react';
-import Hls from 'hls.js';
 import { Source } from '@/lib/types';
 
 interface VideoPlayerProps {
@@ -9,13 +8,6 @@ interface VideoPlayerProps {
   subtitles?: { label: string; url: string; lang: string }[];
   poster?: string;
   title?: string;
-}
-
-interface QualityLevel {
-  height: number;
-  index: number;
-  bitrate: number;
-  label: string;
 }
 
 function normalizeEmbedUrl(rawUrl: string): string {
@@ -46,155 +38,105 @@ function EmbedPlayer({ source }: { source: Source }) {
 }
 
 function VideoPlayerContent({ source, subtitles = [], poster, title }: VideoPlayerProps) {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const hlsRef = useRef<Hls | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-  const [qualities, setQualities] = useState<QualityLevel[]>([]);
-  const [currentQuality, setCurrentQuality] = useState(-1);
+  const playerInstance = useRef<any>(null);
 
   const isEmbed = source.type === 'embed';
 
   useEffect(() => {
-    if (isEmbed || !videoRef.current) {
+    if (isEmbed || !containerRef.current) {
       setLoading(false);
       return;
     }
 
-    const video = videoRef.current;
-    setLoading(true);
-    setError(false);
+    const initPlayer = async () => {
+      try {
+        setLoading(true);
+        
+        const container = containerRef.current!;
+        container.innerHTML = '';
+        
+        const script = document.createElement('script');
+        script.type = 'module';
+        script.src = 'https://cdn.vidstack.io/player';
+        document.head.appendChild(script);
 
-    const handleCanPlay = () => setLoading(false);
-    const handleError = () => {
-      setError(true);
-      setLoading(false);
+        await new Promise((resolve, reject) => {
+          script.onload = resolve;
+          script.onerror = reject;
+          setTimeout(() => reject(new Error('Timeout')), 10000);
+        });
+
+        const { VidstackPlayer, VidstackPlayerLayout } = (window as any).VidstackPlayerLib || { 
+          create: async () => {
+            const container = document.createElement('div');
+            container.innerHTML = `
+              <video class="vidstack-player" controls crossorigin="anonymous" playsinline>
+                <source src="${source.url}" type="application/x-mpegURL" />
+              </video>
+            `;
+            return container.querySelector('video');
+          }
+        };
+        
+        if (VidstackPlayer && VidstackPlayer.create) {
+          const player = await VidstackPlayer.create({
+            target: container,
+            title: title || source.name,
+            src: source.url,
+            poster: poster || '',
+            layout: new VidstackPlayerLayout({
+              thumbnails: poster || '',
+            }),
+          });
+          
+          playerInstance.current = player;
+          
+          player.addEventListener('error', () => {
+            setError(true);
+            setLoading(false);
+          });
+          
+          player.addEventListener('loaded', () => {
+            setLoading(false);
+          });
+        } else {
+          setError(true);
+        }
+      } catch (err) {
+        console.error('Failed to create Vidstack player:', err);
+        setError(true);
+      } finally {
+        setLoading(false);
+      }
     };
 
-    if (source.type === 'm3u8' || source.url.includes('.m3u8')) {
-      if (Hls.isSupported()) {
-        const hls = new Hls({
-          enableWorker: true,
-          lowLatencyMode: false,
-        });
-        hlsRef.current = hls;
-        hls.loadSource(source.url);
-        hls.attachMedia(video);
-
-        hls.on(Hls.Events.MANIFEST_PARSED, (_event, data) => {
-          setLoading(false);
-          const levels: QualityLevel[] = data.levels.map((level: any, index: number) => ({
-            height: level.height,
-            index,
-            bitrate: level.bitrate,
-            label: `${level.height}p`,
-          }));
-          setQualities(levels);
-          if (levels.length > 0) {
-            setCurrentQuality(levels[levels.length - 1].height);
-          }
-          video.play().catch(() => {});
-        });
-
-        hls.on(Hls.Events.LEVEL_SWITCHED, (_event, data) => {
-          if (hlsRef.current) {
-            setCurrentQuality(hlsRef.current.levels[data.level]?.height || -1);
-          }
-        });
-
-        hls.on(Hls.Events.ERROR, (_event, data) => {
-          if (data.fatal) {
-            handleError();
-          }
-        });
-      } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-        video.src = source.url;
-        video.addEventListener('loadedmetadata', handleCanPlay);
-        video.addEventListener('error', handleError);
-      } else {
-        handleError();
-      }
-    } else {
-      video.src = source.url;
-      video.addEventListener('canplay', handleCanPlay);
-      video.addEventListener('error', handleError);
-    }
+    initPlayer();
 
     return () => {
-      video.removeEventListener('canplay', handleCanPlay);
-      video.removeEventListener('loadedmetadata', handleCanPlay);
-      video.removeEventListener('error', handleError);
-      if (hlsRef.current) {
+      if (playerInstance.current) {
         try {
-          hlsRef.current.destroy();
+          playerInstance.current.destroy();
         } catch (e) {}
-        hlsRef.current = null;
+        playerInstance.current = null;
       }
     };
-  }, [source, isEmbed]);
-
-  const handleQualityChange = (height: number) => {
-    if (!hlsRef.current) return;
-    const levelIndex = hlsRef.current.levels.findIndex(l => l.height === height);
-    if (levelIndex !== -1) {
-      hlsRef.current.currentLevel = levelIndex;
-      setCurrentQuality(height);
-    }
-  };
-
-  const togglePiP = async () => {
-    const video = videoRef.current;
-    if (!video) return;
-    try {
-      if (document.pictureInPictureElement) {
-        await document.exitPictureInPicture();
-      } else {
-        await video.requestPictureInPicture();
-      }
-    } catch (e) {}
-  };
-
-  const toggleFullscreen = () => {
-    const container = videoRef.current?.parentElement;
-    if (!container) return;
-    if (document.fullscreenElement) {
-      document.exitFullscreen();
-    } else {
-      container.requestFullscreen();
-    }
-  };
+  }, [source, isEmbed, poster, title]);
 
   if (isEmbed) {
     return <EmbedPlayer source={source} />;
   }
 
   return (
-    <div className="w-full aspect-video bg-black rounded-xl overflow-hidden relative">
-      <video
-        ref={videoRef}
+    <div className="w-full aspect-video bg-black rounded-xl overflow-hidden">
+      <div 
+        ref={containerRef} 
         className="w-full h-full"
-        playsInline
-        controls
-        poster={poster}
-        crossOrigin="anonymous"
       />
       
-      {!loading && qualities.length > 0 && (
-        <div className="absolute top-2 right-2 z-10">
-          <select
-            value={currentQuality}
-            onChange={(e) => handleQualityChange(parseInt(e.target.value))}
-            className="bg-black/70 text-white text-xs px-2 py-1 rounded border border-white/20"
-          >
-            <option value={-1}>Auto</option>
-            {qualities.map(q => (
-              <option key={q.height} value={q.height}>{q.label}</option>
-            ))}
-          </select>
-        </div>
-      )}
-
-      {loading && !error && (
+      {loading && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/80 z-10 pointer-events-none">
           <div className="flex flex-col items-center gap-3">
             <div className="h-10 w-10 animate-spin rounded-full border-2 border-white border-t-transparent" />
