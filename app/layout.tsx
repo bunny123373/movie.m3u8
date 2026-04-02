@@ -36,6 +36,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="scroll-smooth">
+      <head>
+        <link rel="stylesheet" href="https://cdn.vidstack.io/player/theme.css" />
+        <link rel="stylesheet" href="https://cdn.vidstack.io/player/video.css" />
+        <script src="https://cdn.vidstack.io/player.dev" type="module" />
+      </head>
       <body className="bg-zinc-950 text-zinc-100 min-h-screen antialiased">
         <Navbar />
         {children}
