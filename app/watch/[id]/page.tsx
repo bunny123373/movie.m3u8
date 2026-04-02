@@ -186,7 +186,7 @@ export default function WatchPage() {
                         : 'border-white/10 bg-[#111a22] text-slate-300 hover:border-slate-400/40'
                     }`}
                   >
-                    <span className="truncate">{source.name}</span>
+                    <span className="truncate">Server {source.priority}</span>
                     <span className="rounded bg-black/40 px-2 py-0.5 text-[11px] uppercase">{source.type}</span>
                   </Link>
                 );
@@ -200,7 +200,7 @@ export default function WatchPage() {
               <p>Title: {movie.title}</p>
               <p>Year: {year}</p>
               <p>Quality: {movie.quality}</p>
-              <p>Source: {currentSource.name}</p>
+              <p>Server: {currentSource.priority}</p>
               <p>Type: {currentSource.type.toUpperCase()}</p>
               {episode && <p>Episode: {episode}</p>}
             </div>

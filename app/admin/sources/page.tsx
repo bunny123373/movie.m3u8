@@ -200,10 +200,7 @@ export default function SourcesPage() {
                                 : 'border-red-900/30 bg-red-900/10'
                             }`}
                           >
-                            <span className={`px-2 py-0.5 text-xs rounded-lg border ${getTypeColor(source.type)}`}>
-                              {source.type.toUpperCase()}
-                            </span>
-                            <span className="text-sm text-zinc-400">{source.name}</span>
+                            <span className="text-sm text-zinc-400">Server {source.priority}</span>
                             <span className={`w-2 h-2 rounded-full ${source.active ? 'bg-green-500' : 'bg-red-500'}`} />
                           </div>
                         ))}
