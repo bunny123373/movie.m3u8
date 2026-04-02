@@ -35,6 +35,15 @@ export default function ImportPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [saving, setSaving] = useState(false);
   const [importedCount, setImportedCount] = useState(0);
+  const [browseType, setBrowseType] = useState<'genre' | 'trending' | 'popular' | 'top_rated' | 'now_playing'>('genre');
+
+  const BROWSE_OPTIONS = [
+    { id: 'genre', label: 'By Genre' },
+    { id: 'trending', label: 'Trending' },
+    { id: 'popular', label: 'Popular' },
+    { id: 'top_rated', label: 'Top Rated' },
+    { id: 'now_playing', label: mediaType === 'movie' ? 'Now Playing' : 'On TV' },
+  ];
 
   useEffect(() => {
     fetchGenres();
@@ -51,14 +60,20 @@ export default function ImportPage() {
   }
 
   async function searchByGenre() {
-    if (!selectedGenre) return;
     setLoading(true);
     setResults([]);
     setSelectedItems([]);
     setPage(1);
     
     try {
-      const res = await fetch(`/api/tmdb/discover?genre=${selectedGenre}&type=${mediaType}&page=1`);
+      let endpoint = '';
+      if (browseType === 'genre' && selectedGenre) {
+        endpoint = `/api/tmdb/discover?genre=${selectedGenre}&type=${mediaType}&page=1`;
+      } else {
+        endpoint = `/api/tmdb/browse?type=${browseType}&mediaType=${mediaType}&page=1`;
+      }
+      
+      const res = await fetch(endpoint);
       const data = await res.json();
       setResults(data.results || []);
       setTotalPages(data.totalPages || 1);
@@ -70,11 +85,18 @@ export default function ImportPage() {
   }
 
   async function loadMore() {
-    if (page >= totalPages || !selectedGenre) return;
+    if (page >= totalPages) return;
     setLoading(true);
     
     try {
-      const res = await fetch(`/api/tmdb/discover?genre=${selectedGenre}&type=${mediaType}&page=${page + 1}`);
+      let endpoint = '';
+      if (browseType === 'genre' && selectedGenre) {
+        endpoint = `/api/tmdb/discover?genre=${selectedGenre}&type=${mediaType}&page=${page + 1}`;
+      } else {
+        endpoint = `/api/tmdb/browse?type=${browseType}&mediaType=${mediaType}&page=${page + 1}`;
+      }
+      
+      const res = await fetch(endpoint);
       const data = await res.json();
       setResults(prev => [...prev, ...(data.results || [])]);
       setPage(prev => prev + 1);
@@ -203,24 +225,45 @@ export default function ImportPage() {
                 </button>
               </div>
             </div>
-            
-            <div className="flex-1 min-w-[200px]">
-              <label className="block text-sm text-[#8b949e] mb-2">Category</label>
-              <select
-                value={selectedGenre}
-                onChange={(e) => setSelectedGenre(e.target.value)}
-                className="w-full px-4 py-2.5 bg-[#0d1117] border border-[#30363d] rounded-lg text-white focus:outline-none focus:border-[#00a8e1]"
-              >
-                <option value="">Select a category</option>
-                {genres.map(g => (
-                  <option key={g.id} value={g.id}>{g.name}</option>
+
+            <div>
+              <label className="block text-sm text-[#8b949e] mb-2">Browse By</label>
+              <div className="flex gap-2 flex-wrap">
+                {BROWSE_OPTIONS.map(opt => (
+                  <button
+                    key={opt.id}
+                    onClick={() => { setBrowseType(opt.id as any); setSelectedGenre(''); setResults([]); setSelectedItems([]); }}
+                    className={`px-3 py-2 text-sm rounded-lg transition-all ${
+                      browseType === opt.id
+                        ? 'bg-[#00a8e1] text-white'
+                        : 'bg-[#21262d] text-[#8b949e] hover:text-white hover:bg-[#30363d]'
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
                 ))}
-              </select>
+              </div>
             </div>
+            
+            {browseType === 'genre' && (
+              <div className="flex-1 min-w-[200px]">
+                <label className="block text-sm text-[#8b949e] mb-2">Category</label>
+                <select
+                  value={selectedGenre}
+                  onChange={(e) => setSelectedGenre(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-[#0d1117] border border-[#30363d] rounded-lg text-white focus:outline-none focus:border-[#00a8e1]"
+                >
+                  <option value="">Select a category</option>
+                  {genres.map(g => (
+                    <option key={g.id} value={g.id}>{g.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             <button
               onClick={searchByGenre}
-              disabled={!selectedGenre || loading}
+              disabled={(browseType === 'genre' && !selectedGenre) || loading}
               className="px-6 py-2.5 bg-[#00a8e1] hover:bg-[#00b4e6] rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             >
               {loading ? 'Loading...' : 'Browse'}

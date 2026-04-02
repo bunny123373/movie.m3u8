@@ -194,19 +194,7 @@ export default function HomePage() {
 
   const allMedia = useMemo<MediaItem[]>(() => [...movies, ...series], [movies, series]);
   
-  const trendingMedia = useMemo(() => {
-    return [...allMedia].sort((a, b) => b.rating - a.rating).slice(0, 10);
-  }, [allMedia]);
 
-  const newReleases = useMemo(() => {
-    return [...allMedia]
-      .sort((a, b) => new Date(b.releaseDate).getTime() - new Date(a.releaseDate).getTime())
-      .slice(0, 10);
-  }, [allMedia]);
-
-  const topRated = useMemo(() => {
-    return [...allMedia].sort((a, b) => b.rating - a.rating).slice(0, 10);
-  }, [allMedia]);
 
 
 
@@ -377,49 +365,7 @@ export default function HomePage() {
           </section>
         )}
 
-        {newReleases.length > 0 && (
-          <section>
-            <h2 className="mb-4 text-xl font-semibold sm:text-2xl">New Releases</h2>
-            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4">
-              {newReleases.map((item) => (
-                <MovieCard key={`new-${item.id}`} movie={item} className="w-[160px] sm:w-[200px] md:w-[240px] shrink-0" progress={progressMap[item.id]} />
-              ))}
-            </div>
-          </section>
-        )}
 
-        {movies.length > 0 && (
-          <section id="movies" className="scroll-mt-24">
-            <h2 className="mb-4 text-xl font-semibold sm:text-2xl">Movies</h2>
-            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4">
-              {movies.map((item) => (
-                <MovieCard key={`movie-${item.id}`} movie={item} className="w-[160px] sm:w-[200px] md:w-[240px] shrink-0" progress={progressMap[item.id]} />
-              ))}
-            </div>
-          </section>
-        )}
-
-        {series.length > 0 && (
-          <section id="series" className="scroll-mt-24">
-            <h2 className="mb-4 text-xl font-semibold sm:text-2xl">TV Series</h2>
-            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4">
-              {series.map((item) => (
-                <MovieCard key={`series-${item.id}`} movie={item} className="w-[160px] sm:w-[200px] md:w-[240px] shrink-0" progress={progressMap[item.id]} />
-              ))}
-            </div>
-          </section>
-        )}
-
-        {topRated.length > 0 && (
-          <section>
-            <h2 className="mb-4 text-xl font-semibold sm:text-2xl">Top Rated</h2>
-            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4">
-              {topRated.map((item) => (
-                <MovieCard key={`top-${item.id}`} movie={item} className="w-[160px] sm:w-[200px] md:w-[240px] shrink-0" progress={progressMap[item.id]} />
-              ))}
-            </div>
-          </section>
-        )}
 
 
       </section>
