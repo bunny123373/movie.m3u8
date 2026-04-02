@@ -251,15 +251,6 @@ export default function HomePage() {
 
   return (
     <main className="min-h-screen bg-[#0f171e] text-white pb-safe md:pb-0">
-      <button
-        onClick={() => { setLoading(true); fetchMedia(); }}
-        className="fixed top-4 right-4 z-50 p-2 bg-black/50 hover:bg-black/70 rounded-full backdrop-blur-sm transition-colors"
-        title="Refresh"
-      >
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-        </svg>
-      </button>
 
       <section className="relative w-full overflow-hidden" style={{ aspectRatio: '16/9', minHeight: '400px', maxHeight: '65vh' }}>
         <div className="absolute inset-0">
