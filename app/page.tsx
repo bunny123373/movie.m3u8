@@ -54,16 +54,42 @@ interface WatchProgress {
 
 type WatchProgressMap = Record<string, WatchProgress>;
 
+const GENRE_SECTIONS = [
+  { id: 'action', label: 'Action', genres: ['Action', 'Adventure', 'War'] },
+  { id: 'comedy', label: 'Comedy', genres: ['Comedy'] },
+  { id: 'drama', label: 'Drama', genres: ['Drama', 'Family'] },
+  { id: 'thriller', label: 'Thriller', genres: ['Thriller', 'Horror', 'Mystery'] },
+  { id: 'scifi', label: 'Sci-Fi & Fantasy', genres: ['Science Fiction', 'Fantasy'] },
+  { id: 'romance', label: 'Romance', genres: ['Romance'] },
+  { id: 'animation', label: 'Animation', genres: ['Animation'] },
+];
+
+const MOVIE_GENRE_SECTIONS = [
+  { id: 'action-movies', label: 'Action Movies', genres: ['Action', 'Adventure'], isMovie: true },
+  { id: 'comedy-movies', label: 'Comedy Movies', genres: ['Comedy'], isMovie: true },
+  { id: 'drama-movies', label: 'Drama Movies', genres: ['Drama'], isMovie: true },
+  { id: 'thriller-movies', label: 'Thriller Movies', genres: ['Thriller', 'Horror', 'Mystery'], isMovie: true },
+  { id: 'scifi-movies', label: 'Sci-Fi Movies', genres: ['Science Fiction', 'Fantasy'], isMovie: true },
+  { id: 'romance-movies', label: 'Romance Movies', genres: ['Romance'], isMovie: true },
+  { id: 'animation-movies', label: 'Animated Movies', genres: ['Animation'], isMovie: true },
+];
+
+const SERIES_GENRE_SECTIONS = [
+  { id: 'action-series', label: 'Action Series', genres: ['Action', 'Adventure'], isMovie: false },
+  { id: 'comedy-series', label: 'Comedy Series', genres: ['Comedy'], isMovie: false },
+  { id: 'drama-series', label: 'Drama Series', genres: ['Drama'], isMovie: false },
+  { id: 'thriller-series', label: 'Thriller Series', genres: ['Thriller', 'Horror', 'Mystery'], isMovie: false },
+  { id: 'scifi-series', label: 'Sci-Fi Series', genres: ['Science Fiction', 'Fantasy'], isMovie: false },
+  { id: 'romance-series', label: 'Romance Series', genres: ['Romance'], isMovie: false },
+  { id: 'animation-series', label: 'Animated Series', genres: ['Animation'], isMovie: false },
+];
+
 function readWatchProgress(): WatchProgressMap {
   try {
     const rawProgress = localStorage.getItem('watchProgress');
-    if (!rawProgress) {
-      return {};
-    }
+    if (!rawProgress) return {};
     const parsed: unknown = JSON.parse(rawProgress);
-    if (!parsed || typeof parsed !== 'object') {
-      return {};
-    }
+    if (!parsed || typeof parsed !== 'object') return {};
     return parsed as WatchProgressMap;
   } catch (error) {
     console.error('Failed to read watch progress:', error);
@@ -106,6 +132,7 @@ export default function HomePage() {
   const [continueWatching, setContinueWatching] = useState<MediaItem[]>([]);
   const [trendingTmdb, setTrendingTmdb] = useState<MediaItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeCategory, setActiveCategory] = useState<'all' | 'movies' | 'series'>('all');
 
   async function fetchMedia() {
     try {
@@ -126,32 +153,28 @@ export default function HomePage() {
       const localMovieMap = new Map(movieItems.map(m => [m.title.toLowerCase().trim(), m]));
       const localSeriesMap = new Map(seriesItems.map(s => [s.title.toLowerCase().trim(), s]));
 
-        const trendingItems: MediaItem[] = (trendingData.results || []).reduce((acc: MediaItem[], item: any) => {
-          const titleKey = item.title?.toLowerCase().trim();
-          
-          if (item.mediaType === 'series') {
-            const localMatch = localSeriesMap.get(titleKey);
-            if (localMatch) {
-              acc.push(localMatch);
-            }
-          } else {
-            const localMatch = localMovieMap.get(titleKey);
-            if (localMatch) {
-              acc.push(localMatch);
-            }
-          }
-          return acc;
-        }, []);
-
-        if (trendingItems.length < 3 && allMedia.length > 0) {
-          const topRated = [...allMedia]
-            .sort((a, b) => b.rating - a.rating)
-            .filter(item => !trendingItems.find(t => t.id === item.id))
-            .slice(0, 10 - trendingItems.length);
-          trendingItems.push(...topRated);
+      const trendingItems: MediaItem[] = (trendingData.results || []).reduce((acc: MediaItem[], item: any) => {
+        const titleKey = item.title?.toLowerCase().trim();
+        
+        if (item.mediaType === 'series') {
+          const localMatch = localSeriesMap.get(titleKey);
+          if (localMatch) acc.push(localMatch);
+        } else {
+          const localMatch = localMovieMap.get(titleKey);
+          if (localMatch) acc.push(localMatch);
         }
+        return acc;
+      }, []);
 
-        setTrendingTmdb(trendingItems);
+      if (trendingItems.length < 3 && allMedia.length > 0) {
+        const topRated = [...allMedia]
+          .sort((a, b) => b.rating - a.rating)
+          .filter(item => !trendingItems.find(t => t.id === item.id))
+          .slice(0, 10 - trendingItems.length);
+        trendingItems.push(...topRated);
+      }
+
+      setTrendingTmdb(trendingItems);
       setMovies(movieItems);
       setSeries(seriesItems);
       
@@ -185,18 +208,25 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
-    const handleFocus = () => {
-      fetchMedia();
-    };
+    const handleFocus = () => fetchMedia();
     window.addEventListener('focus', handleFocus);
     return () => window.removeEventListener('focus', handleFocus);
   }, []);
 
   const allMedia = useMemo<MediaItem[]>(() => [...movies, ...series], [movies, series]);
-  
+  const progressMap = readWatchProgress();
 
+  const getItemsByGenre = (section: typeof MOVIE_GENRE_SECTIONS[0], items: MediaItem[]) => {
+    return items.filter(item => 
+      item.genres.some(g => section.genres.includes(g))
+    ).slice(0, 10);
+  };
 
-
+  const filteredMedia = useMemo(() => {
+    if (activeCategory === 'all') return allMedia;
+    if (activeCategory === 'movies') return movies;
+    return series;
+  }, [activeCategory, allMedia, movies, series]);
 
   if (loading) {
     return <HomeSkeleton />;
@@ -217,19 +247,12 @@ export default function HomePage() {
 
   const year = featured.releaseDate.split('-')[0];
   const isFeaturedSeries = featured.mediaType === 'series';
-  const featuredSubLine = isFeaturedSeries
-    ? `${featured.totalSeasons} Seasons | ${featured.totalEpisodes} Episodes`
-    : featured.runtime;
-  const progressMap = readWatchProgress();
   const featuredProgress = progressMap[featured.id];
 
   return (
     <main className="min-h-screen bg-[#0f171e] text-white pb-safe md:pb-0">
       <button
-        onClick={() => {
-          setLoading(true);
-          fetchMedia();
-        }}
+        onClick={() => { setLoading(true); fetchMedia(); }}
         className="fixed top-4 right-4 z-50 p-2 bg-black/50 hover:bg-black/70 rounded-full backdrop-blur-sm transition-colors"
         title="Refresh"
       >
@@ -237,6 +260,7 @@ export default function HomePage() {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
         </svg>
       </button>
+
       <section className="relative w-full overflow-hidden" style={{ aspectRatio: '16/9', minHeight: '400px', maxHeight: '65vh' }}>
         <div className="absolute inset-0">
           <Image
@@ -291,10 +315,7 @@ export default function HomePage() {
                   <span>{Math.round((featuredProgress.progress / featuredProgress.duration) * 100)}%</span>
                 </div>
                 <div className="h-1 bg-white/20 rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-[#00a8e1] rounded-full" 
-                    style={{ width: `${(featuredProgress.progress / featuredProgress.duration) * 100}%` }}
-                  />
+                  <div className="h-full bg-[#00a8e1] rounded-full" style={{ width: `${(featuredProgress.progress / featuredProgress.duration) * 100}%` }} />
                 </div>
               </div>
             )}
@@ -309,7 +330,6 @@ export default function HomePage() {
                 </svg>
                 {featuredProgress ? 'Resume' : 'Play'}
               </Link>
-
               <Link
                 href={`/movie/${featured.slug || featured.id}`}
                 className="flex items-center gap-2 rounded-sm border border-white/40 bg-white/10 px-5 py-2 text-sm font-semibold text-white backdrop-blur-sm transition-all hover:bg-white/20"
@@ -342,7 +362,42 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl space-y-10 px-4 py-8 sm:px-6 lg:px-8">
+      <section className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
+        <div className="flex items-center gap-2 mb-6 overflow-x-auto pb-2 scrollbar-hide">
+          <button
+            onClick={() => setActiveCategory('all')}
+            className={`shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all ${
+              activeCategory === 'all'
+                ? 'bg-[#00a8e1] text-white'
+                : 'bg-white/10 text-gray-300 hover:bg-white/20'
+            }`}
+          >
+            All
+          </button>
+          <button
+            onClick={() => setActiveCategory('movies')}
+            className={`shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all ${
+              activeCategory === 'movies'
+                ? 'bg-[#00a8e1] text-white'
+                : 'bg-white/10 text-gray-300 hover:bg-white/20'
+            }`}
+          >
+            Movies
+          </button>
+          <button
+            onClick={() => setActiveCategory('series')}
+            className={`shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all ${
+              activeCategory === 'series'
+                ? 'bg-[#00a8e1] text-white'
+                : 'bg-white/10 text-gray-300 hover:bg-white/20'
+            }`}
+          >
+            Series
+          </button>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-7xl space-y-8 px-4 py-2 sm:px-6 lg:px-8">
         {continueWatching.length > 0 && (
           <section>
             <h2 className="mb-4 text-xl font-semibold sm:text-2xl">Continue Watching</h2>
@@ -365,9 +420,62 @@ export default function HomePage() {
           </section>
         )}
 
+        {(activeCategory === 'all' || activeCategory === 'movies') && MOVIE_GENRE_SECTIONS.map(section => {
+          const items = getItemsByGenre({ ...section, isMovie: true }, movies);
+          if (items.length === 0) return null;
+          
+          return (
+            <section key={section.id}>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold sm:text-2xl">{section.label}</h2>
+                <Link
+                  href={`/genres?type=movie&genre=${encodeURIComponent(section.genres[0])}`}
+                  className="text-sm text-[#00a8e1] hover:text-[#25baf0] transition-colors"
+                >
+                  View All
+                </Link>
+              </div>
+              <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4">
+                {items.map((item) => (
+                  <MovieCard key={`movie-${section.id}-${item.id}`} movie={item} className="w-[160px] sm:w-[200px] md:w-[240px] shrink-0" progress={progressMap[item.id]} />
+                ))}
+              </div>
+            </section>
+          );
+        })}
 
+        {(activeCategory === 'all' || activeCategory === 'series') && SERIES_GENRE_SECTIONS.map(section => {
+          const items = getItemsByGenre({ ...section, isMovie: false }, series);
+          if (items.length === 0) return null;
+          
+          return (
+            <section key={section.id}>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold sm:text-2xl">{section.label}</h2>
+                <Link
+                  href={`/genres?type=series&genre=${encodeURIComponent(section.genres[0])}`}
+                  className="text-sm text-[#00a8e1] hover:text-[#25baf0] transition-colors"
+                >
+                  View All
+                </Link>
+              </div>
+              <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4">
+                {items.map((item) => (
+                  <MovieCard key={`series-${section.id}-${item.id}`} movie={item} className="w-[160px] sm:w-[200px] md:w-[240px] shrink-0" progress={progressMap[item.id]} />
+                ))}
+              </div>
+            </section>
+          );
+        })}
 
-
+        {allMedia.length === 0 && (
+          <div className="py-20 text-center">
+            <p className="text-gray-400 text-lg">No content available</p>
+            <Link href="/admin" className="mt-4 inline-block text-[#00a8e1] hover:text-[#25baf0] transition-colors">
+              Add content in Admin
+            </Link>
+          </div>
+        )}
       </section>
     </main>
   );
