@@ -60,7 +60,7 @@ function VideoPlayerContent({ source, subtitles = [], poster, title }: VideoPlay
       className="w-full aspect-video bg-black rounded-xl overflow-hidden"
     >
       <MediaProvider />
-      <DefaultVideoLayout icons={defaultLayoutIcons} />
+      <DefaultVideoLayout thumbnails={poster} icons={defaultLayoutIcons} />
     </MediaPlayer>
   );
 }
