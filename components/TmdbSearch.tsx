@@ -21,7 +21,7 @@ interface TmdbSearchProps {
   type?: 'movie' | 'tv' | 'all';
 }
 
-const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p/w500';
+const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p/w780';
 const GENRE_MAP: Record<number, string> = {
   28: 'Action',
   12: 'Adventure',

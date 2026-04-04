@@ -4,9 +4,11 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import GlobalSearch from './GlobalSearch';
+import { useAuth } from './AuthProvider';
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
+  const { user, signIn, signOut } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -83,9 +85,35 @@ export default function Navbar() {
             <div className="hidden md:block">
               <GlobalSearch />
             </div>
-            <div className="w-8 h-8 md:w-8 md:h-8 rounded-full bg-red-600 flex items-center justify-center text-white text-sm md:text-sm font-medium">
-              T
-            </div>
+            
+            {user ? (
+              <div className="flex items-center gap-2">
+                {user.picture ? (
+                  <Image
+                    src={user.picture}
+                    alt={user.name || 'User'}
+                    width={32}
+                    height={32}
+                    className="rounded-full cursor-pointer"
+                    onClick={() => signOut()}
+                  />
+                ) : (
+                  <button
+                    onClick={() => signOut()}
+                    className="w-8 h-8 md:w-8 md:h-8 rounded-full bg-red-600 flex items-center justify-center text-white text-sm md:text-sm font-medium"
+                  >
+                    {user.name?.charAt(0) || 'U'}
+                  </button>
+                )}
+              </div>
+            ) : (
+              <button
+                onClick={() => signIn()}
+                className="text-sm text-gray-300 hover:text-white transition-colors"
+              >
+                Sign In
+              </button>
+            )}
           </div>
         </div>
       </div>

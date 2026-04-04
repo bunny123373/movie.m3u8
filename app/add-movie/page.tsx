@@ -44,7 +44,7 @@ export default function AddMoviePage() {
 
   const handleTmdbSelect = async (movie: TmdbMovie) => {
     setTitle(movie.title || movie.name || '');
-    setPoster(movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : '');
+    setPoster(movie.poster_path ? `https://image.tmdb.org/t/p/w780${movie.poster_path}` : '');
     setBackdrop(movie.backdrop_path ? `https://image.tmdb.org/t/p/original${movie.backdrop_path}` : '');
     setReleaseDate(movie.release_date || movie.first_air_date || '');
     setRating(movie.vote_average);

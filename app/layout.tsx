@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import BottomNav from "@/components/BottomNav";
-import Provider from "@/components/Provider";
+import AuthProvider from "@/components/AuthProvider";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -39,11 +39,11 @@ export default function RootLayout({
     <html lang="en" className="scroll-smooth">
       <head />
       <body className="bg-[#141414] text-white min-h-screen antialiased">
-        <Provider>
+        <AuthProvider>
           <Navbar />
           {children}
           <BottomNav />
-        </Provider>
+        </AuthProvider>
       </body>
     </html>
   );

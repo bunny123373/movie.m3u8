@@ -52,7 +52,7 @@ export default function AddSeriesPage() {
 
   const handleTmdbSelect = async (result: TmdbResult) => {
     setTitle(result.name || result.title || '');
-    setPoster(result.poster_path ? `https://image.tmdb.org/t/p/w500${result.poster_path}` : '');
+    setPoster(result.poster_path ? `https://image.tmdb.org/t/p/w780${result.poster_path}` : '');
     setBackdrop(result.backdrop_path ? `https://image.tmdb.org/t/p/original${result.backdrop_path}` : '');
     setReleaseDate(result.first_air_date || result.release_date || '');
     setRating(result.vote_average);

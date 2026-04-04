@@ -144,7 +144,7 @@ function SearchContent() {
               {results.map((item) => (
                 <Link key={item.id} href={`/movie/${item.slug || item.id}`} className="group">
                   <div className="aspect-[2/3] rounded overflow-hidden bg-[#222] mb-2 relative transition-transform duration-300 group-hover:scale-105 group-hover:shadow-lg group-hover:shadow-red-900/20">
-                    {item.backdrop ? (
+                    {item.poster ? (
                       <Image src={item.backdrop} alt={item.title} fill className="object-cover" />
                     ) : item.poster ? (
                       <Image src={item.poster} alt={item.title} fill className="object-cover" />

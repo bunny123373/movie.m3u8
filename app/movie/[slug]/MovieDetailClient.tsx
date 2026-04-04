@@ -392,7 +392,7 @@ export default function MovieDetailClient() {
                       <div key={episode} className="bg-[#2a2a2a] rounded overflow-hidden">
                         <div className="relative h-20 md:h-24">
                           <Image
-                            src={movie.backdrop || movie.poster}
+                            src={movie.poster}
                             alt={`Episode ${episode}`}
                             fill
                             className="object-cover"

@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
       id: item.id.toString(),
       tmdbId: item.id,
       title: item.title || item.name || '',
-      poster: item.poster_path ? `https://image.tmdb.org/t/p/w500${item.poster_path}` : '',
+      poster: item.poster_path ? `https://image.tmdb.org/t/p/w780${item.poster_path}` : '',
       backdrop: item.backdrop_path ? `https://image.tmdb.org/t/p/original${item.backdrop_path}` : '',
       rating: item.vote_average || 0,
       releaseDate: item.release_date || item.first_air_date || '',

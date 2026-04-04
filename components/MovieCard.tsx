@@ -81,7 +81,10 @@ export default function MovieCard({ movie, className, progress, rank }: MovieCar
   const [isExpanded, setIsExpanded] = useState(false);
   const year = movie.releaseDate.split('-')[0];
   const linkSlug = movie.slug || movie.id;
-  const cardClassName = className || 'w-[160px] sm:w-[200px] md:w-[240px] shrink-0';
+  const cardClassName = className || 'w-[160px] sm:w-[200px] md:w-[240px] lg:w-[220px] shrink-0';
+
+  const matchPercent = Math.round(movie.rating * 10);
+  const isHighMatch = matchPercent >= 70;
 
   const toggleFavorite = (event: React.MouseEvent) => {
     event.preventDefault();
@@ -115,14 +118,14 @@ export default function MovieCard({ movie, className, progress, rank }: MovieCar
       onMouseEnter={() => setIsExpanded(true)}
       onMouseLeave={() => setIsExpanded(false)}
     >
-      <Link href={`/movie/${linkSlug}`} className="block">
-        <div className={`relative aspect-[2/3] overflow-hidden rounded-md bg-[#1a1a1a] transition-all duration-300 ${isExpanded ? 'scale-105 shadow-[0_0_30px_rgba(229,9,20,0.5)]' : 'group-hover:scale-105 group-hover:shadow-[0_0_20px_rgba(229,9,20,0.4)]'} rounded-b-none`}>
+      <Link href={`/movie/${linkSlug}`} className="block z-10 relative">
+        <div className={`relative aspect-[2/3] overflow-hidden rounded-md bg-[#1a1a1a] transition-all duration-300 ${isExpanded ? 'scale-105 shadow-[0_0_30px_rgba(229,9,20,0.5)]' : 'group-hover:scale-105 group-hover:shadow-[0_0_20px_rgba(229,9,20,0.4)]'} group-hover:z-20 rounded-b-none`}>
           <Image
-            src={movie.backdrop || movie.poster}
+            src={movie.poster}
             alt={movie.title}
             fill
-            className="object-cover transition-transform duration-500 group-hover:scale-110"
-            sizes="(max-width: 640px) 85vw, (max-width: 1024px) 45vw, 240px"
+            className="object-cover object-top transition-transform duration-500 group-hover:scale-110"
+            sizes="(max-width: 640px) 85vw, (max-width: 1024px) 45vw, 220px"
           />
 
           <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
@@ -169,42 +172,10 @@ export default function MovieCard({ movie, className, progress, rank }: MovieCar
               />
             </div>
           )}
-
-          {isExpanded && (
-            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black via-black/95 to-transparent pt-8 pb-3 px-3">
-              <div className="flex gap-2 mb-2">
-                <Link
-                  href={`/watch/${linkSlug}?source=${movie.sources[0]?.id}`}
-                  onClick={(e) => e.stopPropagation()}
-                  className="flex-1 flex items-center justify-center gap-1 bg-[#e50914] hover:bg-[#b20710] text-white text-xs font-semibold py-1.5 rounded-sm transition-colors"
-                >
-                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M8 5v14l11-7z" />
-                  </svg>
-                  Play
-                </Link>
-                <button
-                  onClick={toggleFavorite}
-                  className="p-1.5 rounded-sm border border-gray-500 text-gray-300 hover:border-white hover:text-white transition-colors"
-                >
-                  <svg className="w-3 h-3" fill={isFavorite ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                  </svg>
-                </button>
-              </div>
-              <div className="flex flex-wrap gap-1">
-                {movie.genres.slice(0, 2).map((genre) => (
-                  <span key={genre} className="text-[10px] text-gray-400">
-                    {genre}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
       </Link>
 
-      <div className={`mt-2 px-1 transition-all duration-300 ${isExpanded ? 'opacity-0 absolute' : 'opacity-100'}`}>
+      <div className={`mt-2 px-1 transition-all duration-300 ${isExpanded ? 'opacity-0' : 'opacity-100'}`}>
         <h3 className="truncate text-sm font-medium text-white group-hover:text-[#e50914] transition-colors">{movie.title}</h3>
         <div className="flex items-center gap-2 text-[11px] text-gray-400 mt-0.5">
           <span>{year}</span>
@@ -215,19 +186,65 @@ export default function MovieCard({ movie, className, progress, rank }: MovieCar
         </div>
       </div>
 
-      {isExpanded && (
-        <div className="absolute left-0 right-0 -mt-1 bg-[#141414] rounded-b-md overflow-hidden z-10 shadow-xl border border-t-0 border-white/10">
-          <div className="px-2 py-2">
-            <h3 className="truncate text-sm font-medium text-white">{movie.title}</h3>
-            <div className="flex items-center gap-2 text-[10px] text-gray-400 mt-0.5">
-              <span>{year}</span>
-              <span className="text-yellow-500">★ {movie.rating.toFixed(1)}</span>
-              {movie.runtime && <span>{movie.runtime}</span>}
+      <div className={`hidden lg:block absolute left-0 z-30 transition-all duration-300 ${isExpanded ? 'opacity-100 visible' : 'opacity-0 invisible'}`} style={{ top: 'calc(100% - 8px)', left: '4px' }}>
+        <div className="bg-zinc-900 rounded-xl shadow-2xl w-[320px] overflow-hidden border border-white/10">
+          <div className="relative aspect-[16/9]">
+            <Image
+              src={movie.backdrop || movie.poster}
+              alt={movie.title}
+              fill
+              className="object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+            <div className="absolute bottom-3 left-3 flex gap-2">
+              <Link
+                href={`/watch/${linkSlug}?source=${movie.sources[0]?.id}`}
+                className="bg-white text-black w-9 h-9 rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors"
+              >
+                ▶
+              </Link>
+              <button
+                onClick={toggleFavorite}
+                className={`bg-white/20 w-9 h-9 rounded-full flex items-center justify-center hover:bg-white/30 transition-colors ${isFavorite ? 'text-[#e50914]' : 'text-white'}`}
+              >
+                +
+              </button>
+              <button className="bg-white/20 w-9 h-9 rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-colors">
+                👍
+              </button>
+              <button className="bg-white/20 w-9 h-9 rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-colors">
+                👎
+              </button>
             </div>
-            <p className="text-[10px] text-gray-500 mt-1 line-clamp-2">{movie.overview}</p>
+          </div>
+
+          <div className="p-4">
+            <div className="flex gap-3 text-xs text-gray-300 mb-3">
+              {isHighMatch && (
+                <span className="text-green-500 font-semibold">{matchPercent}% Match</span>
+              )}
+              <span>{year}</span>
+              <span className="border border-gray-600 px-1 rounded text-gray-400">U/A 16+</span>
+              <span className="text-gray-500">HD</span>
+            </div>
+
+            <div className="flex flex-wrap gap-1.5 text-xs text-gray-400 mb-2">
+              {movie.genres.slice(0, 4).map((genre) => (
+                <span key={genre} className="hover:text-gray-300 cursor-pointer">
+                  {genre}
+                  <span className="mx-1">•</span>
+                </span>
+              ))}
+            </div>
+
+            {movie.runtime && (
+              <div className="text-xs text-gray-500">
+                <span className="mr-2">▶ Episodes available</span>
+              </div>
+            )}
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }
@@ -237,7 +254,7 @@ interface MovieCardSkeletonProps {
 }
 
 export function MovieCardSkeleton({ className }: MovieCardSkeletonProps) {
-  const cardClassName = className || 'w-[160px] sm:w-[200px] md:w-[240px] shrink-0';
+  const cardClassName = className || 'w-[160px] sm:w-[200px] md:w-[240px] lg:w-[220px] shrink-0';
 
   return (
     <div className={`animate-pulse ${cardClassName}`}>

@@ -100,7 +100,7 @@ export default function FavoritesPage() {
                       slug: item.slug,
                       title: item.title,
                       poster: item.poster,
-                      backdrop: item.backdrop || item.poster,
+                      backdrop: item.poster,
                       rating: item.rating || 0,
                       releaseDate: item.releaseDate || '2024-01-01',
                       overview: item.overview || '',
