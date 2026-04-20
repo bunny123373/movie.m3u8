@@ -54,6 +54,7 @@ interface WatchProgress {
 type WatchProgressMap = Record<string, WatchProgress>;
 
 function readWatchProgress(): WatchProgressMap {
+  if (typeof window === 'undefined') return {};
   try {
     const rawProgress = localStorage.getItem('watchProgress');
     if (!rawProgress) return {};
