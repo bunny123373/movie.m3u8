@@ -12,21 +12,27 @@ interface FavoriteItem {
   mediaType: 'movie' | 'series';
 }
 
+async function fetchFavorites(): Promise<FavoriteItem[]> {
+  try {
+    const res = await fetch('/api/user/favorites');
+    if (!res.ok) return [];
+    return await res.json();
+  } catch {
+    return [];
+  }
+}
+
 export default function FavoritesButton() {
   const [favorites, setFavorites] = useState<FavoriteItem[]>([]);
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
-    const stored = localStorage.getItem('favorites');
-    if (stored) {
-      setFavorites(JSON.parse(stored));
-    }
+    fetchFavorites().then(setFavorites);
   }, []);
 
-  const removeFavorite = (id: string) => {
-    const updated = favorites.filter(f => f.id !== id);
-    setFavorites(updated);
-    localStorage.setItem('favorites', JSON.stringify(updated));
+  const removeFavorite = async (id: string) => {
+    await fetch(`/api/user/favorites?mediaId=${id}`, { method: 'DELETE' });
+    setFavorites(favorites.filter(f => f.id !== id));
   };
 
   return (

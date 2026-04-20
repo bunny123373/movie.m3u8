@@ -1,5 +1,5 @@
 import { getDatabase } from './db';
-import { ObjectId } from 'mongodb';
+import { ObjectId, Collection } from 'mongodb';
 
 export * from './types';
 
@@ -136,4 +136,80 @@ export async function getAllMedia(): Promise<any[]> {
   return [...movies, ...series].sort((a, b) => 
     new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   );
+}
+
+export interface Favorite {
+  _id?: ObjectId;
+  userId: string;
+  mediaId: string;
+  slug: string;
+  title: string;
+  poster: string;
+  mediaType: 'movie' | 'series';
+  createdAt: Date;
+}
+
+export interface WatchProgress {
+  _id?: ObjectId;
+  userId: string;
+  mediaId: string;
+  progress: number;
+  duration: number;
+  updatedAt: Date;
+}
+
+export interface UserSettings {
+  _id?: ObjectId;
+  userId: string;
+  homeSettings?: Record<string, any>;
+  siteSettings?: Record<string, any>;
+  updatedAt: Date;
+}
+
+export async function getFavorites(userId: string): Promise<Favorite[]> {
+  const db = await getDatabase();
+  return db.collection('favorites').find({ userId }).toArray() as Promise<Favorite[]>;
+}
+
+export async function addFavorite(favorite: Omit<Favorite, '_id' | 'createdAt'>): Promise<Favorite> {
+  const db = await getDatabase();
+  const newFavorite = { ...favorite, createdAt: new Date() };
+  const result = await db.collection('favorites').insertOne(newFavorite);
+  return { ...newFavorite, _id: result.insertedId };
+}
+
+export async function removeFavorite(userId: string, mediaId: string): Promise<boolean> {
+  const db = await getDatabase();
+  const result = await db.collection('favorites').deleteOne({ userId, mediaId });
+  return result.deletedCount > 0;
+}
+
+export async function getWatchProgress(userId: string): Promise<WatchProgress[]> {
+  const db = await getDatabase();
+  return db.collection('watchProgress').find({ userId }).toArray() as Promise<WatchProgress[]>;
+}
+
+export async function saveWatchProgress(data: Omit<WatchProgress, '_id' | 'updatedAt'>): Promise<WatchProgress> {
+  const db = await getDatabase();
+  const result = await db.collection('watchProgress').findOneAndUpdate(
+    { userId: data.userId, mediaId: data.mediaId },
+    { $set: { ...data, updatedAt: new Date() } },
+    { upsert: true, returnDocument: 'after' }
+  );
+  return result as WatchProgress;
+}
+
+export async function getUserSettings(userId: string): Promise<UserSettings | null> {
+  const db = await getDatabase();
+  return db.collection('settings').findOne({ userId }) as Promise<UserSettings | null>;
+}
+
+export async function saveUserSettings(userId: string, settings: Partial<UserSettings>): Promise<UserSettings> {
+  const db = await getDatabase();
+  const result = await db.collection('settings').findOneAndUpdate(
+    { userId },
+    { $set: { ...settings, updatedAt: new Date() } },
+    { upsert: true, returnDocument: 'after' }
+  );
+  return result as UserSettings;
 }

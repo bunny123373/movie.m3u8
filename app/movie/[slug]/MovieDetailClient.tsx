@@ -26,19 +26,13 @@ function isMediaSeries(media: Media): media is MediaSeries {
   return media.mediaType === 'series';
 }
 
-function readFavorites(): FavoriteItem[] {
+async function fetchFavorites(): Promise<FavoriteItem[]> {
   try {
-    const stored = localStorage.getItem('favorites');
-    if (!stored) {
-      return [];
-    }
-    const parsed: unknown = JSON.parse(stored);
-    if (!Array.isArray(parsed)) {
-      return [];
-    }
-    return parsed as FavoriteItem[];
+    const res = await fetch('/api/user/favorites');
+    if (!res.ok) return [];
+    return await res.json();
   } catch (error) {
-    console.error('Failed to read favorites:', error);
+    console.error('Failed to fetch favorites:', error);
     return [];
   }
 }
@@ -119,8 +113,12 @@ export default function MovieDetailClient() {
     if (!movie) {
       return;
     }
-    const favorites = readFavorites();
-    setIsFavorite(favorites.some((item) => item.id === movie.id));
+    async function checkFavorite() {
+      if (!movie) return;
+      const favorites = await fetchFavorites();
+      setIsFavorite(favorites.some((item: FavoriteItem) => item.id === movie.id));
+    }
+    checkFavorite();
   }, [movie]);
 
   const seriesData = movie && isMediaSeries(movie) ? movie : null;
@@ -161,30 +159,29 @@ export default function MovieDetailClient() {
     fetchSimilar();
   }, [movie]);
 
-  const toggleFavorite = () => {
+  const toggleFavorite = async () => {
     if (!movie) {
       return;
     }
 
-    const favorites = readFavorites();
-    if (favorites.some((item) => item.id === movie.id)) {
-      const updated = favorites.filter((item) => item.id !== movie.id);
-      localStorage.setItem('favorites', JSON.stringify(updated));
+    const isFav = await fetchFavorites();
+    if (isFav.some((item: FavoriteItem) => item.id === movie.id)) {
+      await fetch(`/api/user/favorites?mediaId=${movie.id}`, { method: 'DELETE' });
       setIsFavorite(false);
       return;
     }
 
-    const updated = [
-      ...favorites,
-      {
-        id: movie.id,
+    await fetch('/api/user/favorites', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        mediaId: movie.id,
         slug: movie.slug,
         title: movie.title,
         poster: movie.poster,
         mediaType: movie.mediaType,
-      } satisfies FavoriteItem,
-    ];
-    localStorage.setItem('favorites', JSON.stringify(updated));
+      }),
+    });
     setIsFavorite(true);
   };
 

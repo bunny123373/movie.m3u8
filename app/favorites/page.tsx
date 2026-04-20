@@ -20,29 +20,31 @@ interface FavoriteItem {
   sources?: Array<{ id: string; name: string; url: string; type: string }>;
 }
 
+async function fetchFavorites(): Promise<FavoriteItem[]> {
+  try {
+    const res = await fetch('/api/user/favorites');
+    if (!res.ok) return [];
+    return await res.json();
+  } catch {
+    return [];
+  }
+}
+
 export default function FavoritesPage() {
   const [favorites, setFavorites] = useState<FavoriteItem[]>([]);
   const [loading, setLoading] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem('favorites');
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        setFavorites(parsed);
-      }
-    } catch (error) {
-      console.error('Failed to load favorites:', error);
-    } finally {
+    fetchFavorites().then(favs => {
+      setFavorites(favs);
       setLoading(false);
-    }
+    });
   }, []);
 
-  const removeFavorite = (id: string) => {
-    const updated = favorites.filter((item) => item.id !== id);
-    localStorage.setItem('favorites', JSON.stringify(updated));
-    setFavorites(updated);
+  const removeFavorite = async (id: string) => {
+    await fetch(`/api/user/favorites?mediaId=${id}`, { method: 'DELETE' });
+    setFavorites(favorites.filter((item) => item.id !== id));
   };
 
   const scroll = (direction: 'left' | 'right') => {

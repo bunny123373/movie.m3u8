@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -54,30 +54,18 @@ interface MovieCardProps {
   rank?: number;
 }
 
-function readFavorites(): FavoriteItem[] {
+async function fetchFavorites(): Promise<FavoriteItem[]> {
   try {
-    const stored = localStorage.getItem('favorites');
-    if (!stored) {
-      return [];
-    }
-    const parsed: unknown = JSON.parse(stored);
-    if (!Array.isArray(parsed)) {
-      return [];
-    }
-    return parsed as FavoriteItem[];
-  } catch (error) {
-    console.error('Failed to read favorites:', error);
+    const res = await fetch('/api/user/favorites');
+    if (!res.ok) return [];
+    return await res.json();
+  } catch {
     return [];
   }
 }
 
 export default function MovieCard({ movie, className, progress, rank }: MovieCardProps) {
-  const [isFavorite, setIsFavorite] = useState(() => {
-    if (typeof window === 'undefined') {
-      return false;
-    }
-    return readFavorites().some((item) => item.id === movie.id);
-  });
+  const [isFavorite, setIsFavorite] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const year = movie.releaseDate.split('-')[0];
   const linkSlug = movie.slug || movie.id;
@@ -86,29 +74,33 @@ export default function MovieCard({ movie, className, progress, rank }: MovieCar
   const matchPercent = Math.round(movie.rating * 10);
   const isHighMatch = matchPercent >= 70;
 
-  const toggleFavorite = (event: React.MouseEvent) => {
+  useEffect(() => {
+    fetchFavorites().then(favs => {
+      setIsFavorite(favs.some((item) => item.id === movie.id));
+    });
+  }, [movie.id]);
+
+  const toggleFavorite = async (event: React.MouseEvent) => {
     event.preventDefault();
     event.stopPropagation();
 
-    const favorites = readFavorites();
-    if (favorites.some((item) => item.id === movie.id)) {
-      const updated = favorites.filter((item) => item.id !== movie.id);
-      localStorage.setItem('favorites', JSON.stringify(updated));
+    if (isFavorite) {
+      await fetch(`/api/user/favorites?mediaId=${movie.id}`, { method: 'DELETE' });
       setIsFavorite(false);
       return;
     }
 
-    const updated = [
-      ...favorites,
-      {
-        id: movie.id,
+    await fetch('/api/user/favorites', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        mediaId: movie.id,
         slug: movie.slug,
         title: movie.title,
         poster: movie.poster,
         mediaType: movie.mediaType || 'movie',
-      },
-    ];
-    localStorage.setItem('favorites', JSON.stringify(updated));
+      }),
+    });
     setIsFavorite(true);
   };
 
