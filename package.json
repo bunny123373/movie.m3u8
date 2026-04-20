@@ -9,7 +9,6 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@next/swc-win32-x64-msvc": "15.1.6",
     "@vidstack/react": "^1.12.13",
     "hls.js": "^1.6.15",
     "mongodb": "^7.1.0",
